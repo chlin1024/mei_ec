@@ -32,7 +32,9 @@ export class UsersService {
   }
 
   async getUserById(id: number): Promise<User> {
-    const result = await this.usersRepository.findOne({ where: { id } });
+    const result = await this.usersRepository.findOne({
+      where: { id, deletedAt: null },
+    });
     if (!result) {
       throw new NotFoundException(`User ${id} Not Found`);
     }
@@ -40,7 +42,9 @@ export class UsersService {
   }
 
   async getUserByUserName(userName: string): Promise<User> {
-    const result = await this.usersRepository.findOne({ where: { userName } });
+    const result = await this.usersRepository.findOne({
+      where: { userName, deletedAt: null },
+    });
     if (!result) {
       throw new NotFoundException(`User ${userName} Not Found`);
     }

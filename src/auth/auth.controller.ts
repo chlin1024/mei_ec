@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
+  Put,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -16,5 +18,14 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   signIn(@Body() authDto: AuthDto) {
     return this.authService.signIn(authDto);
+  }
+  @Get('token')
+  login(@Body('token') token: string) {
+    return this.authService.getSessionByToken(token);
+  }
+
+  @Put('token')
+  logout(@Body('token') token: string) {
+    return this.authService.revokeSession(token);
   }
 }
