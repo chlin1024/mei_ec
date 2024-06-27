@@ -5,9 +5,11 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 
 @Entity()
+@Unique(['userName'])
 export class User {
   // extends BaseEntity
   @PrimaryGeneratedColumn()

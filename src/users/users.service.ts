@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
 //import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,8 +31,17 @@ export class UsersService {
     user.password = hashPassword;
     user.name = name;
     user.email = email;
-    await this.usersRepository.save(user);
-    return { userName, name, email };
+    try {
+      await this.usersRepository.save(user);
+      return { userName, name, email };
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException(error.detail);
+      } else {
+        throw new InternalServerErrorException(error.detail);
+      }
+    }
+
     //return this.userRepository.createUser(createUserDto);
   }
 
