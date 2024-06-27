@@ -1,7 +1,9 @@
+import { User } from 'src/users/user.entity';
 import {
   Column,
   DeleteDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -24,4 +26,7 @@ export class LoginSession {
 
   @DeleteDateColumn()
   revokedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.loginSessions)
+  user: LoginSession;
 }

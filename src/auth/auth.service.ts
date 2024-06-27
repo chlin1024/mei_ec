@@ -27,7 +27,7 @@ export class AuthService {
     const user = await this.usersService.getUserByUserName(userName);
     const isMatch = await bcrypt.compare(passWord, user.password);
     if (!isMatch) {
-      throw new UnauthorizedException(`帳號或密碼錯誤`);
+      throw new UnauthorizedException(`wrong username or password`);
     }
     const jwtToken = await this.createSession(user);
     return { user: omit(user, ['password']), token: jwtToken };
@@ -53,7 +53,6 @@ export class AuthService {
       where: {
         token: token,
         revokedAt: IsNull(),
-        //expiredAt: MoreThan(new Date()),
       },
     });
     if (!session) {
@@ -65,10 +64,12 @@ export class AuthService {
   async revokeSession(token: string): Promise<UpdateResult> {
     try {
       const session = await this.getSessionByToken(token);
+
       const result = await this.loginSessionRepository.softDelete(session.id);
       return result;
     } catch (error) {
-      throw new Error(`Failed to revoke session: ${error.message}`);
+      return error;
+      //throw new Error(`Failed to revoke session: ${error.message}`);
     }
   }
 }
