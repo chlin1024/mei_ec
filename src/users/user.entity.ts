@@ -1,11 +1,15 @@
+import { LoginSession } from 'src/auth/loginSession.entity';
 import {
   Column,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 
 @Entity()
+@Unique(['userName'])
 export class User {
   // extends BaseEntity
   @PrimaryGeneratedColumn()
@@ -25,4 +29,7 @@ export class User {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @OneToMany(() => LoginSession, (loginSession) => loginSession.user)
+  loginSessions: LoginSession[];
 }
