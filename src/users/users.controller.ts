@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   UsePipes,
@@ -31,13 +32,13 @@ export class UsersController {
   }
 
   @Delete(':id')
-  deleteUserById(@Param('id') id: number): Promise<UpdateResult> {
+  deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UpdateResult> {
     return this.usersService.deleteUserById(id);
   }
 
   @Put(':id')
   updateUser(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UpdateResult> {
     return this.usersService.updateUser(id, updateUserDto);

@@ -44,8 +44,7 @@ export class AuthService {
     session.userId = user.id;
     session.createdAt = new Date(Date.now());
     session.expiredAt = new Date(Date.now() + 3600 * 1000);
-    const re = await this.loginSessionRepository.save(session);
-    console.log(re);
+    await this.loginSessionRepository.save(session);
     return session.token;
   }
 

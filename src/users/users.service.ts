@@ -11,6 +11,7 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
+import { omit } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -46,13 +47,13 @@ export class UsersService {
   }
 
   async getUserById(id: number): Promise<User> {
-    const result = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       where: { id, deletedAt: null },
     });
-    if (!result) {
+    if (!user) {
       throw new NotFoundException(`User ${id} Not Found`);
     }
-    return result;
+    return omit(user, ['password']);
   }
 
   async getUserByUserName(userName: string): Promise<User> {
