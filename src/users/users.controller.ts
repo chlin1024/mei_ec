@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -15,13 +16,20 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { User } from './user.entity';
 import { UpdateResult } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { QueryUsersDto } from './dto/queryUsers.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
+  @Get()
+  getUser(@Query() queryUsersDto: QueryUsersDto) {
+    console.log(queryUsersDto);
+    return this.usersService.getUsers(queryUsersDto);
+  }
+  //page=1&limit=10&orderBy='createdAt:desc'&name=someone
 
   @Get(':id')
-  getUser(@Param('id') id: number): Promise<User> {
+  getUserbyId(@Param('id') id: number): Promise<User> {
     return this.usersService.getUserById(id);
   }
 

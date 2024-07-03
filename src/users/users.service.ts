@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
 import { omit } from 'lodash';
+import { QueryUsersDto } from './dto/queryUsers.dto';
 
 @Injectable()
 export class UsersService {
@@ -45,6 +46,28 @@ export class UsersService {
 
     //return this.userRepository.createUser(createUserDto);
   }
+
+  async getUsers(queryUsersDto: QueryUsersDto) {
+    const { page, limit, orderBy, email, name } = queryUsersDto;
+    //console.log(page, limit, orderBy, email, name);
+    const query = this.usersRepository.createQueryBuilder('user');
+    if (name) {
+      query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+    }
+    if (email) {
+      query.andWhere('user.email LIKE :email', { email: `%${email}%` });
+    }
+    const orderyColumn = orderBy.split(':')[0];
+    const orderByType = orderBy.split(':')[1].toUpperCase(); //as 'ASC' | 'DESC';
+    console.log(orderByType);
+    const users = await query
+      .orderBy(orderyColumn, 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+    return users;
+  }
+  //page=1&limit=10&orderBy='createdAt:desc'&name=someone
 
   async getUserById(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
