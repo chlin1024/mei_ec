@@ -23,7 +23,6 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
   @Get()
   getUser(@Query() queryUsersDto: QueryUsersDto) {
-    console.log(queryUsersDto);
     return this.usersService.getUsers(queryUsersDto);
   }
   //page=1&limit=10&orderBy='createdAt:desc'&name=someone

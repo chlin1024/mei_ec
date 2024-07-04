@@ -51,17 +51,23 @@ export class UsersService {
     const { page, limit, orderBy, email, name } = queryUsersDto;
     //console.log(page, limit, orderBy, email, name);
     const query = this.usersRepository.createQueryBuilder('user');
+    query.andWhere('user.deletedAt IS NULL');
     if (name) {
       query.andWhere('user.name LIKE :name', { name: `%${name}%` });
     }
     if (email) {
       query.andWhere('user.email LIKE :email', { email: `%${email}%` });
     }
-    const orderyColumn = orderBy.split(':')[0];
-    const orderByType = orderBy.split(':')[1].toUpperCase(); //as 'ASC' | 'DESC';
-    console.log(orderByType);
+
+    const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+    const orderColumn = cleanOrderBy.split(':')[0];
+    const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
+      | 'ASC'
+      | 'DESC';
+    const order: Record<string, 'ASC' | 'DESC'> = { [orderColumn]: orderType };
+
     const users = await query
-      .orderBy(orderyColumn, 'DESC')
+      .orderBy(order)
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
