@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Order } from './order.entity';
 import { Product } from 'src/products/product.entity';
 
@@ -15,4 +21,7 @@ export class OrderItem {
 
   @Column()
   quantity: number;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
