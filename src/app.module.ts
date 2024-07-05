@@ -7,9 +7,10 @@ import { typeormConfig } from './config/typeorm.config';
 import { DataSource } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(typeormConfig), UsersModule, AuthModule, ProductsModule],
+  imports: [TypeOrmModule.forRoot(typeormConfig), UsersModule, AuthModule, ProductsModule, OrdersModule],
   controllers: [AppController],
   providers: [AppService],
 })
