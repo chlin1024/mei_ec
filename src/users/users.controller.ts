@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   Req,
+  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -31,13 +32,14 @@ export class UsersController {
   getUser(@Query() queryUsersDto: QueryUsersDto) {
     return this.usersService.getUsers(queryUsersDto);
   }
-  //page=1&limit=10&orderBy='createdAt:desc'&name=someone
 
   @Get(':id')
-  @UseGuards(JwtGuard, RolesGuard) // new RolesGuard()
   @Roles(UserRoles.GUEST)
+  @UseGuards(JwtGuard, RolesGuard) // new RolesGuard()
   getUserbyId(@Param('id') id: number, @Req() { user }): Promise<User> {
-    console.log(user);
+    if (user.id !== id) {
+      throw new UnauthorizedException('User ID does not match');
+    }
     return this.usersService.getUserById(id);
   }
 
@@ -48,7 +50,15 @@ export class UsersController {
   }
 
   @Delete(':id')
-  deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UpdateResult> {
+  @Roles(UserRoles.GUEST)
+  @UseGuards(JwtGuard, RolesGuard)
+  deleteUserById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() { user },
+  ): Promise<UpdateResult> {
+    if (user.id !== id) {
+      throw new UnauthorizedException('User ID does not match');
+    }
     return this.usersService.deleteUserById(id);
   }
 
@@ -56,7 +66,11 @@ export class UsersController {
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
+    @Req() { user },
   ): Promise<UpdateResult> {
+    if (user.id !== id) {
+      throw new UnauthorizedException('User ID does not match');
+    }
     return this.usersService.updateUser(id, updateUserDto);
   }
 }
