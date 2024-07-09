@@ -51,7 +51,6 @@ export class UsersService {
     const { page, limit, orderBy, email, name } = queryUsersDto;
     //console.log(page, limit, orderBy, email, name);
     const query = this.usersRepository.createQueryBuilder('user');
-    query.andWhere('user.deletedAt IS NULL');
     if (name) {
       query.andWhere('user.name LIKE :name', { name: `%${name}%` });
     }

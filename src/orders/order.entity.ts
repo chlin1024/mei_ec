@@ -45,7 +45,7 @@ export class Order {
   note: string;
 
   @Column()
-  createAt: Date;
+  createdAt: Date;
 
   @DeleteDateColumn()
   deletedAt: Date;

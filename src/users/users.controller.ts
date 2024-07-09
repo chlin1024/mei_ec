@@ -29,6 +29,8 @@ import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
 export class UsersController {
   constructor(private usersService: UsersService) {}
   @Get()
+  @Roles(UserRoles.ADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
   getUser(@Query() queryUsersDto: QueryUsersDto) {
     return this.usersService.getUsers(queryUsersDto);
   }

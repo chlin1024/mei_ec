@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -20,6 +21,7 @@ import { UserRoles } from 'src/users/userRole.enum';
 import { Roles } from 'src/roles.decorator';
 import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
 import { RolesGuard } from 'src/roles.guard';
+import { QueryOrderDto } from './dto/queryOrder.dto';
 
 @Controller('guest/orders')
 export class OrdersController {
@@ -89,5 +91,13 @@ export class OrdersController {
       throw new UnauthorizedException('User ID does not match');
     }
     return this.ordersService.deleteOrderById(id);
+  }
+
+  @Get()
+  @Roles(UserRoles.GUEST)
+  @UseGuards(JwtGuard, RolesGuard)
+  getUser(@Query() queryOrderDto: QueryOrderDto, @Req() { user }) {
+    const userId = user.id;
+    return this.ordersService.getOrder(queryOrderDto, userId);
   }
 }

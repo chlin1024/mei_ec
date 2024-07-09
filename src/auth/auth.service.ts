@@ -39,12 +39,14 @@ export class AuthService {
       username: user.userName,
       role: user.role,
     };
-    const jwtToken = await this.jwtService.signAsync(payload);
+    const jwtToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '10h',
+    });
     const session = new LoginSession();
     session.token = jwtToken;
     session.userId = user.id;
     session.createdAt = new Date(Date.now());
-    session.expiredAt = new Date(Date.now() + 3600 * 1000);
+    session.expiredAt = new Date(Date.now() + 3600 * 10 * 1000);
     await this.loginSessionRepository.save(session);
     return session.token;
   }

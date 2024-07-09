@@ -6,6 +6,7 @@ import { OrderDto } from './dto/order.dto';
 import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UsersService } from 'src/users/users.service';
+import { QueryOrderDto } from './dto/queryOrder.dto';
 
 @Injectable()
 export class OrdersService {
@@ -117,5 +118,53 @@ export class OrdersService {
       throw new NotFoundException(`User ${id} Order not found`);
     }
     return order;
+  }
+
+  async getOrder(queryOrderDto: QueryOrderDto, userId: number) {
+    console.log(userId);
+    console.log(queryOrderDto);
+    const {
+      address,
+      financialStatus,
+      fulfillmentStatus,
+      page,
+      limit,
+      orderBy,
+    } = queryOrderDto;
+    const query = this.ordersRepository.createQueryBuilder('order');
+    console.log(address);
+    if (address) {
+      query.andWhere('order.address LIKE :address', {
+        address: `%${address}%`,
+      });
+    }
+    if (financialStatus) {
+      query.andWhere('order.financialStatus = :financialStatus', {
+        financialStatus,
+      });
+    }
+    if (fulfillmentStatus) {
+      query.andWhere('order.fulfillmentStatus = :fulfillmentStatus', {
+        fulfillmentStatus,
+      });
+    }
+    let orderColumn = 'id';
+    let orderType: 'ASC' | 'DESC' = 'DESC';
+    if (orderBy) {
+      const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+      orderColumn = cleanOrderBy.split(':')[0];
+      orderType = cleanOrderBy.split(':')[1].toUpperCase() as 'ASC' | 'DESC';
+    }
+    console.log(orderColumn, orderType);
+    const results = await query
+      .orderBy(`order.${orderColumn}`, orderType)
+      .andWhere('order.guest = :guest', { guest: userId })
+      .andWhere('order.deletedAt IS NULL')
+      .leftJoinAndSelect('order.orderItems', 'orderItem')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+    console.log(results);
+    return results;
   }
 }
