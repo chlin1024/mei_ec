@@ -5,6 +5,7 @@ import { Order } from './order.entity';
 import { OrderDto } from './dto/order.dto';
 import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class OrdersService {
@@ -13,6 +14,7 @@ export class OrdersService {
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
+    private userService: UsersService,
   ) {}
 
   async createOrder(orderDto: OrderDto) {
@@ -25,9 +27,17 @@ export class OrdersService {
       note,
       orderItems,
     } = orderDto;
+    let adminInfo, guestInfo;
+    if (admin) {
+      adminInfo = await this.userService.getUserById(admin);
+    }
+    if (guest) {
+      guestInfo = await this.userService.getUserById(guest);
+    }
+
     const createOrder = {
-      admin,
-      guest,
+      admin: adminInfo,
+      guest: guestInfo,
       address,
       financialStatus,
       fulfillmentStatus,
@@ -54,6 +64,8 @@ export class OrdersService {
     const order = await query
       .andWhere('order.id = :id', { id })
       .andWhere('order.deletedAt IS NULL')
+      .leftJoinAndSelect('order.admin', 'admin')
+      .leftJoinAndSelect('order.guest', 'guest') //如何只顯示user id，現在user連password都return
       .leftJoinAndSelect('order.orderItems', 'orderItem')
       .getOne();
     if (!order) {
@@ -70,10 +82,18 @@ export class OrdersService {
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
     const { admin, guest, address, financialStatus, fulfillmentStatus, note } =
       updateOrderDto;
+    let adminInfo, guestInfo;
+    if (admin) {
+      adminInfo = await this.userService.getUserById(admin);
+    }
+    if (guest) {
+      guestInfo = await this.userService.getUserById(guest);
+    }
 
+    console.log(adminInfo);
     const updateData = {
-      admin,
-      guest,
+      admin: adminInfo,
+      guest: guestInfo,
       address,
       financialStatus,
       fulfillmentStatus,
@@ -82,5 +102,20 @@ export class OrdersService {
     console.log(updateData);
     //補 oder Item 更新
     return await this.ordersRepository.update(id, { ...updateData });
+  }
+
+  async getOrderByUserId(id: number) {
+    const query = this.ordersRepository.createQueryBuilder('order');
+    const order = await query
+      .andWhere('order.guest = :guest', { guest: id })
+      .andWhere('order.deletedAt IS NULL')
+      .leftJoinAndSelect('order.orderItems', 'orderItem')
+      // .skip((page - 1) * limit)
+      // .take(limit)
+      .getMany();
+    if (!order) {
+      throw new NotFoundException(`User ${id} Order not found`);
+    }
+    return order;
   }
 }

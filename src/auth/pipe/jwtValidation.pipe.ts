@@ -7,7 +7,8 @@ export class JwtValidationPipe implements PipeTransform {
 
   transform(value: any) {
     try {
-      this.jwtService.verify(value);
+      const data = this.jwtService.verify(value);
+      console.log(data);
       return value;
     } catch (error) {
       throw new BadRequestException({

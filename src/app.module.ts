@@ -8,11 +8,25 @@ import { DataSource } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
+// import { APP_GUARD } from '@nestjs/core';
+// import { RolesGuard } from './roles.guard';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(typeormConfig), UsersModule, AuthModule, ProductsModule, OrdersModule],
+  imports: [
+    TypeOrmModule.forRoot(typeormConfig),
+    UsersModule,
+    AuthModule,
+    ProductsModule,
+    OrdersModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard,
+    // },
+  ],
 })
 export class AppModule {
   constructor(private dataSource: DataSource) {}

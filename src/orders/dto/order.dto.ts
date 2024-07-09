@@ -7,7 +7,7 @@ export class OrderDto {
   financialStatus: FinancialStatus;
   fulfillmentStatus: FulfillmentStatus;
   note?: string;
-  orderItems: string; //這邊有問題希望使用OrderItemDto
+  orderItems: string; //這邊使用OrderItemDto[]有問題
 }
 
 export class OrderItemDto {

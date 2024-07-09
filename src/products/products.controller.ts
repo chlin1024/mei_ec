@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -16,6 +17,10 @@ import { ProductDto } from './dto/product.dto';
 import { QueryProductDto } from './dto/queryProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { UpdateResult } from 'typeorm';
+import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
+import { RolesGuard } from 'src/roles.guard';
+import { Roles } from 'src/roles.decorator';
+import { UserRoles } from 'src/users/userRole.enum';
 
 @Controller('products')
 export class ProductsController {
@@ -27,12 +32,16 @@ export class ProductsController {
     return this.productsService.getProducts(queryProductDto);
   }
 
+  @Roles(UserRoles.ADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
   @Post('create')
   @UsePipes(ValidationPipe)
   createUser(@Body() productDto: ProductDto): object {
     return this.productsService.createProduct(productDto);
   }
 
+  @Roles(UserRoles.ADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
   @Put('update/:id')
   updateProduct(
     @Param('id', ParseIntPipe) id: number,
@@ -41,6 +50,8 @@ export class ProductsController {
     return this.productsService.updateProduct(id, updateProductDto);
   }
 
+  @Roles(UserRoles.ADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
   @Delete('delete/:id')
   deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UpdateResult> {
     return this.productsService.deleteProductById(id);

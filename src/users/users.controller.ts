@@ -8,6 +8,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -17,6 +19,10 @@ import { User } from './user.entity';
 import { UpdateResult } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { QueryUsersDto } from './dto/queryUsers.dto';
+import { RolesGuard } from 'src/roles.guard';
+import { Roles } from 'src/roles.decorator';
+import { UserRoles } from './userRole.enum';
+import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
 
 @Controller('users')
 export class UsersController {
@@ -28,7 +34,10 @@ export class UsersController {
   //page=1&limit=10&orderBy='createdAt:desc'&name=someone
 
   @Get(':id')
-  getUserbyId(@Param('id') id: number): Promise<User> {
+  @UseGuards(JwtGuard, RolesGuard) // new RolesGuard()
+  @Roles(UserRoles.GUEST)
+  getUserbyId(@Param('id') id: number, @Req() { user }): Promise<User> {
+    console.log(user);
     return this.usersService.getUserById(id);
   }
 

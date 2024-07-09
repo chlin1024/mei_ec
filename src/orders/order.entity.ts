@@ -15,15 +15,14 @@ import { FinancialStatus, FulfillmentStatus } from './orderStatus.enum';
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
-  s;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'admin' })
-  admin: number;
+  admin: User;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'guest' })
-  guest: number;
+  guest: User;
 
   @Column()
   address: string;
@@ -51,6 +50,6 @@ export class Order {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order, { cascade: true })
   orderItems: OrderItem[];
 }
