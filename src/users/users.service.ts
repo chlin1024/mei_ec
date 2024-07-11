@@ -49,7 +49,6 @@ export class UsersService {
 
   async getUsers(queryUsersDto: QueryUsersDto) {
     const { page, limit, orderBy, email, name } = queryUsersDto;
-    //console.log(page, limit, orderBy, email, name);
     const query = this.usersRepository.createQueryBuilder('user');
     if (name) {
       query.andWhere('user.name LIKE :name', { name: `%${name}%` });
@@ -57,16 +56,17 @@ export class UsersService {
     if (email) {
       query.andWhere('user.email LIKE :email', { email: `%${email}%` });
     }
-
-    const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
-    const orderColumn = cleanOrderBy.split(':')[0];
-    const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
-      | 'ASC'
-      | 'DESC';
-    const order: Record<string, 'ASC' | 'DESC'> = { [orderColumn]: orderType };
+    let orderColumn: string = 'id';
+    let orderType: 'ASC' | 'DESC' = 'DESC';
+    if (orderBy) {
+      const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+      orderColumn = cleanOrderBy.split(':')[0];
+      orderType = cleanOrderBy.split(':')[1].toUpperCase() as 'ASC' | 'DESC';
+    }
+    //const order: Record<string, 'ASC' | 'DESC'> = { [orderColumn]: orderType };
 
     const users = await query
-      .orderBy(order)
+      .orderBy(orderColumn, orderType)
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();

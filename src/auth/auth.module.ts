@@ -3,9 +3,11 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
+//import { jwtConstants } from './constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoginSession } from './loginSession.entity';
+//import { ConfigModule, ConfigService } from '@nestjs/config';
+import { jwtConstants } from './constants';
 
 @Module({
   imports: [
@@ -13,8 +15,9 @@ import { LoginSession } from './loginSession.entity';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1000s' },
+      signOptions: { expiresIn: '10h' },
     }),
+
     TypeOrmModule.forFeature([LoginSession]),
   ],
   controllers: [AuthController],

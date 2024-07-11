@@ -90,8 +90,6 @@ export class OrdersService {
     if (guest) {
       guestInfo = await this.userService.getUserById(guest);
     }
-
-    console.log(adminInfo);
     const updateData = {
       admin: adminInfo,
       guest: guestInfo,
@@ -111,8 +109,6 @@ export class OrdersService {
       .andWhere('order.guest = :guest', { guest: id })
       .andWhere('order.deletedAt IS NULL')
       .leftJoinAndSelect('order.orderItems', 'orderItem')
-      // .skip((page - 1) * limit)
-      // .take(limit)
       .getMany();
     if (!order) {
       throw new NotFoundException(`User ${id} Order not found`);

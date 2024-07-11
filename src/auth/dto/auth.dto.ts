@@ -11,11 +11,11 @@ export class AuthDto {
   @IsString()
   @MinLength(8)
   @MaxLength(20)
-  userName: string;
+  username: string;
 
   @IsNotEmpty()
   @IsString()
   @MinLength(8)
   @Matches(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]/)
-  passWord: string;
+  password: string;
 }
