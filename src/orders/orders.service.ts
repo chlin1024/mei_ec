@@ -43,7 +43,7 @@ export class OrdersService {
       financialStatus,
       fulfillmentStatus,
       note,
-      createAt: new Date(),
+      createdAt: new Date(),
     };
     const orderDraft = await this.ordersRepository.create(createOrder);
     const newOrder = await this.ordersRepository.insert(orderDraft);
@@ -81,8 +81,15 @@ export class OrdersService {
   }
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
-    const { admin, guest, address, financialStatus, fulfillmentStatus, note } =
-      updateOrderDto;
+    const {
+      admin,
+      guest,
+      address,
+      financialStatus,
+      fulfillmentStatus,
+      note,
+      orderItems,
+    } = updateOrderDto;
     let adminInfo, guestInfo;
     if (admin) {
       adminInfo = await this.userService.getUserById(admin);
@@ -90,7 +97,7 @@ export class OrdersService {
     if (guest) {
       guestInfo = await this.userService.getUserById(guest);
     }
-    const updateData = {
+    const updateOrderData = {
       admin: adminInfo,
       guest: guestInfo,
       address,
@@ -98,9 +105,32 @@ export class OrdersService {
       fulfillmentStatus,
       note,
     };
-    console.log(updateData);
-    //補 oder Item 更新
-    return await this.ordersRepository.update(id, { ...updateData });
+
+    const orderItemsObj = JSON.parse(orderItems);
+    if (orderItems) {
+      for (const item of orderItemsObj) {
+        console.log(item);
+        await this.orderItemsRepository.update(
+          { order: { id: id }, product: { id: item.product } },
+          { quantity: item.quantity },
+        );
+      }
+    }
+    function needUpdate(updateOrderData) {
+      for (const key in updateOrderData) {
+        if (updateOrderData[key] !== undefined) {
+          return true;
+        }
+      }
+      return false;
+    }
+    const orderNeedUpdate = needUpdate(updateOrderData);
+
+    let result;
+    if (orderNeedUpdate) {
+      result = await this.ordersRepository.update(id, { ...updateOrderData });
+    }
+    return result;
   }
 
   async getOrderByUserId(id: number) {
@@ -117,8 +147,6 @@ export class OrdersService {
   }
 
   async getOrder(queryOrderDto: QueryOrderDto, userId: number) {
-    console.log(userId);
-    console.log(queryOrderDto);
     const {
       address,
       financialStatus,
