@@ -1,6 +1,7 @@
 import { User } from 'src/users/user.entity';
 import {
   Column,
+  CreateDateColumn,
   DeleteDateColumn,
   Entity,
   JoinColumn,
@@ -44,7 +45,7 @@ export class Order {
   @Column({ nullable: true })
   note: string;
 
-  @Column()
+  @CreateDateColumn() // TODO: created, update, delete 這三個時間大多由 DB 產生
   createdAt: Date;
 
   @DeleteDateColumn()

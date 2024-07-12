@@ -41,6 +41,7 @@ export class OrdersController {
     @Param('id', ParseIntPipe) id: number,
     @Req() { user },
   ): Promise<Order> {
+    // TODO: 邏輯建議做在 service 中，controller 只負責呼叫函式
     const order = await this.ordersService.getOrderById(id);
     const orderGuestId = order.guest.id;
     if (orderGuestId !== user.id) {

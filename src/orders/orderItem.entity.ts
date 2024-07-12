@@ -2,6 +2,7 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -16,7 +17,12 @@ export class OrderItem {
   @ManyToOne(() => Order, (order) => order.orderItems) //typeORM的設定問題，為什麼樣設定在資料庫column名稱會是orderId
   order: Order;
 
+  // TODO: 會使用 id 紀錄
+  @Column()
+  productId: number;
+
   @ManyToOne(() => Product)
+  @JoinColumn({ name: 'productId' })
   product: Product;
 
   @Column()

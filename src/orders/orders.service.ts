@@ -7,11 +7,14 @@ import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UsersService } from 'src/users/users.service';
 import { QueryOrderDto } from './dto/queryOrder.dto';
+import { Product } from 'src/products/product.entity';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Order)
+    private productRepository: Repository<Product>,
+    @InjectRepository(OrderItem)
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
@@ -43,17 +46,17 @@ export class OrdersService {
       financialStatus,
       fulfillmentStatus,
       note,
-      createAt: new Date(),
+      createdAt: new Date(),
     };
-    const orderDraft = await this.ordersRepository.create(createOrder);
+
+    const orderDraft = this.ordersRepository.create(createOrder);
     const newOrder = await this.ordersRepository.insert(orderDraft);
     const newOrderId = newOrder.identifiers[0].id;
-    const orderItemsObj = JSON.parse(orderItems);
+    const orderItemsObj = orderItems;
 
     for (const item of orderItemsObj) {
       const createOrderItem = { ...item, order: newOrderId };
-      const orderitemDraft =
-        await this.orderItemsRepository.create(createOrderItem);
+      const orderitemDraft = this.orderItemsRepository.create(createOrderItem);
       await this.orderItemsRepository.insert(orderitemDraft);
     }
 
@@ -68,6 +71,7 @@ export class OrdersService {
       .leftJoinAndSelect('order.admin', 'admin')
       .leftJoinAndSelect('order.guest', 'guest') //如何只顯示user id，現在user連password都return
       .leftJoinAndSelect('order.orderItems', 'orderItem')
+      .leftJoinAndSelect('orderItem.product', 'product')
       .getOne();
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
