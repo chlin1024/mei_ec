@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
+import { UserRoles } from './userRole.enum';
 
 @Entity()
 @Unique(['userName'])
@@ -26,6 +27,13 @@ export class User {
 
   @Column()
   email: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRoles,
+    default: UserRoles.GUEST,
+  })
+  role: string;
 
   @DeleteDateColumn()
   deletedAt: Date;

@@ -19,6 +19,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   name: string;
 
+  // roles: UserRoles[];
+
   @IsNotEmpty()
   @Matches(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)
   email: string;

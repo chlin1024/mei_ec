@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
 import { omit } from 'lodash';
+import { QueryUsersDto } from './dto/queryUsers.dto';
 
 @Injectable()
 export class UsersService {
@@ -46,6 +47,34 @@ export class UsersService {
     //return this.userRepository.createUser(createUserDto);
   }
 
+  async getUsers(queryUsersDto: QueryUsersDto) {
+    const { page, limit, orderBy, email, name } = queryUsersDto;
+    const query = this.usersRepository.createQueryBuilder('user');
+    if (name) {
+      query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+    }
+    if (email) {
+      query.andWhere('user.email LIKE :email', { email: `%${email}%` });
+    }
+    let orderColumn: string = 'id';
+    let orderType: 'ASC' | 'DESC' = 'DESC';
+    if (orderBy) {
+      const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+      orderColumn = cleanOrderBy.split(':')[0];
+      orderType = cleanOrderBy.split(':')[1].toUpperCase() as 'ASC' | 'DESC';
+    }
+    //const order: Record<string, 'ASC' | 'DESC'> = { [orderColumn]: orderType };
+
+    const users = await query
+      .orderBy(orderColumn, orderType)
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+    const results = users.map((user) => omit(user, 'password'));
+    return results;
+  }
+  //page=1&limit=10&orderBy='createdAt:desc'&name=someone
+
   async getUserById(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id, deletedAt: null },
@@ -57,13 +86,13 @@ export class UsersService {
   }
 
   async getUserByUserName(userName: string): Promise<User> {
-    const result = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       where: { userName, deletedAt: null },
     });
-    if (!result) {
+    if (!user) {
       throw new NotFoundException(`User ${userName} Not Found`);
     }
-    return result;
+    return omit(user, ['password']);
   }
 
   async deleteUserById(id: number) {

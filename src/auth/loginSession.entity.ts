@@ -28,5 +28,5 @@ export class LoginSession {
   revokedAt: Date;
 
   @ManyToOne(() => User, (user) => user.loginSessions)
-  user: LoginSession;
+  user: User;
 }
