@@ -11,8 +11,6 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
@@ -46,7 +44,6 @@ export class UsersController {
   }
 
   @Post('signup')
-  @UsePipes(ValidationPipe)
   createUser(@Body() createUserDto: CreateUserDto): object {
     return this.usersService.createUser(createUserDto);
   }

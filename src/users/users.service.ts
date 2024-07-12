@@ -70,7 +70,8 @@ export class UsersService {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
-    return users;
+    const results = users.map((user) => omit(user, 'password'));
+    return results;
   }
   //page=1&limit=10&orderBy='createdAt:desc'&name=someone
 
@@ -85,13 +86,13 @@ export class UsersService {
   }
 
   async getUserByUserName(userName: string): Promise<User> {
-    const result = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       where: { userName, deletedAt: null },
     });
-    if (!result) {
+    if (!user) {
       throw new NotFoundException(`User ${userName} Not Found`);
     }
-    return result;
+    return omit(user, ['password']);
   }
 
   async deleteUserById(id: number) {

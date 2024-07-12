@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 //import { CreateUserDto } from 'src/users/dto/createUser.dto';
@@ -28,7 +19,6 @@ export class AuthController {
   // }
 
   @Post('login')
-  @UsePipes(ValidationPipe)
   signIn(@Body() authDto: AuthDto) {
     return this.authService.signIn(authDto);
   }

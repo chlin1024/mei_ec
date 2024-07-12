@@ -23,7 +23,7 @@ import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
 import { RolesGuard } from 'src/roles.guard';
 import { QueryOrderDto } from './dto/queryOrder.dto';
 
-@Controller('guest/orders')
+@Controller('orders')
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
 

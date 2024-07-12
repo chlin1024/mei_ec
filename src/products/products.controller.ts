@@ -9,8 +9,6 @@ import {
   Put,
   Query,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ProductDto } from './dto/product.dto';
@@ -35,7 +33,6 @@ export class ProductsController {
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   @Post('create')
-  @UsePipes(ValidationPipe)
   createUser(@Body() productDto: ProductDto): object {
     return this.productsService.createProduct(productDto);
   }

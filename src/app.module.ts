@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 // import { APP_GUARD } from '@nestjs/core';
 // import { RolesGuard } from './roles.guard';
+import { GuestModule } from './guest/guest.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DataSource } from 'typeorm';
     ProductsModule,
     OrdersModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    GuestModule,
   ],
   controllers: [AppController],
   providers: [
