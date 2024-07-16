@@ -33,10 +33,14 @@ import { GuestModule } from './guest/guest.module';
   ],
 })
 export class AppModule {
+  //implements NestModule
   constructor(
     private dataSource: DataSource,
     //private readonly configService: ConfigService,
   ) {
     //console.log('JWT_SECRET:', this.configService.get<string>('JWT_SECRET'));
   }
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer.apply(LoggingMiddleware).forRoutes('*');
+  // }
 }

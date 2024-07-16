@@ -92,7 +92,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User ${userName} Not Found`);
     }
-    return omit(user, ['password']);
+    return user; //omit(user, ['password']); sign in 需要
   }
 
   async deleteUserById(id: number) {
