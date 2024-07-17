@@ -192,12 +192,13 @@ export class OrdersService {
         fulfillmentStatus,
       });
     }
-    let orderColumn = 'id';
-    let orderType: 'ASC' | 'DESC' = 'DESC';
+
     if (orderBy) {
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
-      orderColumn = cleanOrderBy.split(':')[0];
-      orderType = cleanOrderBy.split(':')[1].toUpperCase() as 'ASC' | 'DESC';
+      const orderColumn = cleanOrderBy.split(':')[0];
+      const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
+        | 'ASC'
+        | 'DESC';
       query.orderBy(`order.${orderColumn}`, orderType);
     }
     if (page && limit) {

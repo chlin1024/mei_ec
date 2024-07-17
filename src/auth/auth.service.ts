@@ -41,7 +41,7 @@ export class AuthService {
   async createSession(user: User) {
     const payload = {
       id: user.id,
-      username: user.userName,
+      username: user.username,
       role: user.role,
     };
     const jwtToken = await this.jwtService.signAsync(payload);

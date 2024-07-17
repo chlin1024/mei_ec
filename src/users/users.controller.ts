@@ -37,9 +37,10 @@ export class UsersController {
   @Roles(UserRoles.GUEST)
   @UseGuards(JwtGuard, RolesGuard) // new RolesGuard()
   getUserbyId(@Param('id') id: number, @Req() { user }): Promise<User> {
-    if (user.id !== id) {
-      throw new UnauthorizedException('User ID does not match');
-    }
+    console.log(user.id, id);
+    // if (user.id !== id) {
+    //   throw new UnauthorizedException('User ID does not match');
+    // }
     return this.usersService.getUserById(id);
   }
 

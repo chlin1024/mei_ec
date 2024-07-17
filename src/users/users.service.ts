@@ -11,7 +11,7 @@ import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
-import { omit } from 'lodash';
+//import { omit } from 'lodash';
 import { QueryUsersDto } from './dto/queryUsers.dto';
 
 @Injectable()
@@ -25,26 +25,27 @@ export class UsersService {
   //   private userRepository: UserRepository,
   // ) {}
   async createUser(createUserDto: CreateUserDto) {
-    const { userName, password, name, email } = createUserDto;
+    const { username, password, name, email } = createUserDto;
     const salt = await bcrypt.genSalt();
     const hashPassword = await bcrypt.hash(password, salt);
-    const user = new User();
-    user.userName = userName;
-    user.password = hashPassword;
-    user.name = name;
-    user.email = email;
+    const createUserData = {
+      username,
+      password: hashPassword,
+      name,
+      email,
+    };
+    const userDraft = await this.usersRepository.create(createUserData);
     try {
-      await this.usersRepository.save(user);
-      return { userName, name, email };
+      const newUser = await this.usersRepository.insert(userDraft);
+      return newUser;
     } catch (error) {
       if (error.code === '23505') {
+        //username has to be uniqe
         throw new ConflictException(error.detail);
       } else {
         throw new InternalServerErrorException(error.detail);
       }
     }
-
-    //return this.userRepository.createUser(createUserDto);
   }
 
   async getUsers(queryUsersDto: QueryUsersDto) {
@@ -56,24 +57,20 @@ export class UsersService {
     if (email) {
       query.andWhere('user.email LIKE :email', { email: `%${email}%` });
     }
-    let orderColumn: string = 'id';
-    let orderType: 'ASC' | 'DESC' = 'DESC';
     if (orderBy) {
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
-      orderColumn = cleanOrderBy.split(':')[0];
-      orderType = cleanOrderBy.split(':')[1].toUpperCase() as 'ASC' | 'DESC';
+      const orderColumn = cleanOrderBy.split(':')[0];
+      const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
+        | 'ASC'
+        | 'DESC';
+      query.orderBy(orderColumn, orderType);
     }
-    //const order: Record<string, 'ASC' | 'DESC'> = { [orderColumn]: orderType };
-
-    const users = await query
-      .orderBy(orderColumn, orderType)
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
-    const results = users.map((user) => omit(user, 'password'));
-    return results;
+    if (page && limit) {
+      query.skip((page - 1) * limit).take(limit);
+    }
+    const users = await query.getMany();
+    return users;
   }
-  //page=1&limit=10&orderBy='createdAt:desc'&name=someone
 
   async getUserById(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
@@ -82,15 +79,21 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User ${id} Not Found`);
     }
-    return omit(user, ['password']);
+    return user;
   }
 
-  async getUserByUserName(userName: string): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { userName, deletedAt: null },
-    });
+  async getUserByUserName(username: string): Promise<User> {
+    // const user = await this.usersRepository.findOne({
+    //   where: { username, deletedAt: null }, });
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.username = :username', { username })
+      .andWhere('user.deletedAt IS NULL')
+      .getOne();
+
     if (!user) {
-      throw new NotFoundException(`User ${userName} Not Found`);
+      throw new NotFoundException(`User ${username} Not Found`);
     }
     return user; //omit(user, ['password']); sign in 需要
   }
