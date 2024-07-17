@@ -1,6 +1,7 @@
 import { User } from 'src/users/user.entity';
 import {
   Column,
+  CreateDateColumn,
   DeleteDateColumn,
   Entity,
   JoinColumn,
@@ -16,12 +17,18 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'admin' })
-  admin: User;
+  @Column()
+  adminId: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'guest' })
+  @JoinColumn({ name: 'adminId' })
+  admin: User;
+
+  @Column()
+  guestId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'guestId' })
   guest: User;
 
   @Column()
@@ -44,7 +51,7 @@ export class Order {
   @Column({ nullable: true })
   note: string;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
   @DeleteDateColumn()

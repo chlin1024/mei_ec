@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './order.entity';
@@ -18,39 +22,49 @@ export class OrdersService {
     private userService: UsersService,
   ) {}
 
+  async findRole(id: number) {
+    const user = await this.userService.getUserById(id);
+    if (user.role === 'admin') {
+      return 'admin';
+    }
+    if (user.role === 'guest') {
+      return 'guest';
+    }
+  }
+
   async createOrder(orderDto: OrderDto) {
     const {
-      admin,
-      guest,
+      adminId,
+      guestId,
       address,
       financialStatus,
       fulfillmentStatus,
       note,
       orderItems,
     } = orderDto;
-    let adminInfo, guestInfo;
-    if (admin) {
-      adminInfo = await this.userService.getUserById(admin);
-    }
-    if (guest) {
-      guestInfo = await this.userService.getUserById(guest);
+
+    const admin = await this.findRole(adminId);
+    const guest = await this.findRole(guestId);
+    if (admin !== 'admin') {
+      throw new UnauthorizedException(); //Q:用什麼exception比較好
     }
 
+    if (guest !== 'guest') {
+      throw new UnauthorizedException();
+    }
     const createOrder = {
-      admin: adminInfo,
-      guest: guestInfo,
+      adminId,
+      guestId,
       address,
       financialStatus,
       fulfillmentStatus,
       note,
-      createdAt: new Date(),
     };
     const orderDraft = await this.ordersRepository.create(createOrder);
     const newOrder = await this.ordersRepository.insert(orderDraft);
     const newOrderId = newOrder.identifiers[0].id;
-    const orderItemsObj = JSON.parse(orderItems);
-
-    for (const item of orderItemsObj) {
+    // Q: 需不需要做如果被成功整個rollback?
+    for (const item of orderItems) {
       const createOrderItem = { ...item, order: newOrderId };
       const orderitemDraft =
         await this.orderItemsRepository.create(createOrderItem);
@@ -82,36 +96,41 @@ export class OrdersService {
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
     const {
-      admin,
-      guest,
+      adminId,
+      guestId,
       address,
       financialStatus,
       fulfillmentStatus,
       note,
       orderItems,
     } = updateOrderDto;
-    let adminInfo, guestInfo;
-    if (admin) {
-      adminInfo = await this.userService.getUserById(admin);
-    }
-    if (guest) {
-      guestInfo = await this.userService.getUserById(guest);
-    }
+
     const updateOrderData = {
-      admin: adminInfo,
-      guest: guestInfo,
+      adminId,
+      guestId,
       address,
       financialStatus,
       fulfillmentStatus,
       note,
     };
+    if (adminId) {
+      const admin = await this.findRole(adminId);
+      if (admin !== 'admin') {
+        throw new UnauthorizedException(); //Q:用什麼exception比較好
+      }
+    }
+    if (guestId) {
+      const guest = await this.findRole(guestId);
 
-    const orderItemsObj = JSON.parse(orderItems);
+      if (guest !== 'guest') {
+        throw new UnauthorizedException();
+      }
+    }
     if (orderItems) {
-      for (const item of orderItemsObj) {
+      for (const item of orderItems) {
         console.log(item);
         await this.orderItemsRepository.update(
-          { order: { id: id }, product: { id: item.product } },
+          { order: { id: id }, product: { id: item.productId } },
           { quantity: item.quantity },
         );
       }
@@ -128,35 +147,36 @@ export class OrdersService {
 
     let result;
     if (orderNeedUpdate) {
-      result = await this.ordersRepository.update(id, { ...updateOrderData });
+      result = await this.ordersRepository.update(id, {
+        ...updateOrderData,
+      });
     }
     return result;
   }
 
-  async getOrderByUserId(id: number) {
-    const query = this.ordersRepository.createQueryBuilder('order');
-    const order = await query
-      .andWhere('order.guest = :guest', { guest: id })
-      .andWhere('order.deletedAt IS NULL')
-      .leftJoinAndSelect('order.orderItems', 'orderItem')
-      .getMany();
-    if (!order) {
-      throw new NotFoundException(`User ${id} Order not found`);
-    }
-    return order;
-  }
+  // async getOrderByUserId(id: number) {
+  //   const query = this.ordersRepository.createQueryBuilder('order');
+  //   const order = await query
+  //     .andWhere('order.guest = :guest', { guest: id })
+  //     .andWhere('order.deletedAt IS NULL')
+  //     .leftJoinAndSelect('order.orderItems', 'orderItem')
+  //     .getMany();
+  //   if (!order) {
+  //     throw new NotFoundException(`User ${id} Order not found`);
+  //   }
+  //   return order;
+  // }
 
   async getOrder(queryOrderDto: QueryOrderDto, userId: number) {
     const {
       address,
       financialStatus,
       fulfillmentStatus,
+      orderBy,
       page,
       limit,
-      orderBy,
     } = queryOrderDto;
     const query = this.ordersRepository.createQueryBuilder('order');
-    console.log(address);
     if (address) {
       query.andWhere('order.address LIKE :address', {
         address: `%${address}%`,
@@ -178,17 +198,17 @@ export class OrdersService {
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
       orderColumn = cleanOrderBy.split(':')[0];
       orderType = cleanOrderBy.split(':')[1].toUpperCase() as 'ASC' | 'DESC';
+      query.orderBy(`order.${orderColumn}`, orderType);
     }
-    console.log(orderColumn, orderType);
+    if (page && limit) {
+      query.skip((page - 1) * limit).take(limit);
+    }
+
     const results = await query
-      .orderBy(`order.${orderColumn}`, orderType)
       .andWhere('order.guest = :guest', { guest: userId })
       .andWhere('order.deletedAt IS NULL')
       .leftJoinAndSelect('order.orderItems', 'orderItem')
-      .skip((page - 1) * limit)
-      .take(limit)
       .getMany();
-    console.log(results);
     return results;
   }
 }

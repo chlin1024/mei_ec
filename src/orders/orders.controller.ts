@@ -5,8 +5,8 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
   Req,
   UnauthorizedException,
@@ -49,20 +49,7 @@ export class OrdersController {
     return order;
   }
 
-  @Get('user/:id')
-  @Roles(UserRoles.GUEST)
-  @UseGuards(JwtGuard, RolesGuard)
-  getOrderByUserId(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() { user },
-  ): Promise<Order[]> {
-    if (user.id !== id) {
-      throw new UnauthorizedException('User ID does not match');
-    }
-    return this.ordersService.getOrderByUserId(id);
-  }
-
-  @Put('update/:id')
+  @Patch(':id')
   @Roles(UserRoles.GUEST)
   @UseGuards(JwtGuard, RolesGuard)
   async updateProduct(
@@ -100,4 +87,17 @@ export class OrdersController {
     const userId = user.id;
     return this.ordersService.getOrder(queryOrderDto, userId);
   }
+
+  // @Get('user/:id') //放在user比較符合RESTful API
+  // @Roles(UserRoles.GUEST)
+  // @UseGuards(JwtGuard, RolesGuard)
+  // getOrderByUserId(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Req() { user },
+  // ): Promise<Order[]> {
+  //   if (user.id !== id) {
+  //     throw new UnauthorizedException('User ID does not match');
+  //   }
+  //   return this.ordersService.getOrderByUserId(id);
+  // }
 }

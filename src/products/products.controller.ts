@@ -26,7 +26,6 @@ export class ProductsController {
 
   @Get()
   getProduct(@Query() queryProductDto: QueryProductDto) {
-    console.log(queryProductDto);
     return this.productsService.getProducts(queryProductDto);
   }
 

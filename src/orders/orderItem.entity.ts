@@ -18,6 +18,9 @@ export class OrderItem {
   @JoinColumn({ name: 'orderId' })
   order: Order;
 
+  @Column()
+  productId: number;
+
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'productId' })
   product: Product;
