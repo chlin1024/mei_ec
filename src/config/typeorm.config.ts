@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const port = parseInt(process.env.DATABASE_PORT) || 5432;
-export const typeormConfig: TypeOrmModuleOptions = {
+const typeormConfig: TypeOrmModuleOptions = {
   type: 'postgres',
   host: process.env.DATABASE_HOST,
   port: port,
@@ -11,7 +11,8 @@ export const typeormConfig: TypeOrmModuleOptions = {
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_DB,
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: true,
+  migrations: [__dirname + '/../../migrations/*.ts'], //__dirname + '/../**/migrations/*{.ts,.js}'
+  synchronize: false,
+  //synchronize: true,
 };
-
-//__dirname + '/../**/*.entity.ts'
+export default typeormConfig;
