@@ -5,8 +5,8 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
   Req,
   UnauthorizedException,
@@ -15,7 +15,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { User } from './user.entity';
-import { UpdateResult } from 'typeorm';
+import { InsertResult, UpdateResult } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { QueryUsersDto } from './dto/queryUsers.dto';
 import { RolesGuard } from 'src/roles.guard';
@@ -29,23 +29,12 @@ export class UsersController {
   @Get()
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
-  getUser(@Query() queryUsersDto: QueryUsersDto) {
+  getUser(@Query() queryUsersDto: QueryUsersDto): Promise<User[]> {
     return this.usersService.getUsers(queryUsersDto);
   }
 
-  @Get(':id')
-  @Roles(UserRoles.GUEST)
-  @UseGuards(JwtGuard, RolesGuard) // new RolesGuard()
-  getUserbyId(@Param('id') id: number, @Req() { user }): Promise<User> {
-    console.log(user.id, id);
-    // if (user.id !== id) {
-    //   throw new UnauthorizedException('User ID does not match');
-    // }
-    return this.usersService.getUserById(id);
-  }
-
   @Post('signup')
-  createUser(@Body() createUserDto: CreateUserDto): object {
+  createUser(@Body() createUserDto: CreateUserDto): Promise<InsertResult> {
     return this.usersService.createUser(createUserDto);
   }
 
@@ -62,15 +51,13 @@ export class UsersController {
     return this.usersService.deleteUserById(id);
   }
 
-  @Put(':id')
+  @Patch()
+  @Roles(UserRoles.GUEST)
+  @UseGuards(JwtGuard, RolesGuard)
   updateUser(
-    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
     @Req() { user },
   ): Promise<UpdateResult> {
-    if (user.id !== id) {
-      throw new UnauthorizedException('User ID does not match');
-    }
-    return this.usersService.updateUser(id, updateUserDto);
+    return this.usersService.updateUser(user.id, updateUserDto);
   }
 }

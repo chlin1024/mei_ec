@@ -39,23 +39,24 @@ export class ProductsService {
         description: `%${description}%`,
       });
     }
-    let order: Record<string, 'ASC' | 'DESC'> = { id: 'DESC' };
+
     if (orderBy) {
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
       const orderColumn = cleanOrderBy.split(':')[0];
       const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
         | 'ASC'
         | 'DESC';
-      order = {
-        [orderColumn]: orderType,
-      };
+      // order = {
+      //   [orderColumn]: orderType,
+      // };
+      query.orderBy(orderColumn, orderType);
     }
 
-    const products = await query
-      .orderBy(order)
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
+    if (page && limit) {
+      query.skip((page - 1) * limit).take(limit);
+    }
+
+    const products = await query.getMany();
     return products;
   }
 

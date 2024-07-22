@@ -42,9 +42,9 @@ export class OrdersService {
       note,
       orderItems,
     } = orderDto;
-
     const admin = await this.findRole(adminId);
     const guest = await this.findRole(guestId);
+
     if (admin !== 'admin') {
       throw new UnauthorizedException(); //Q:用什麼exception比較好
     }

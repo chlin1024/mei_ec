@@ -24,19 +24,17 @@ import { RolesGuard } from 'src/roles.guard';
 import { QueryOrderDto } from './dto/queryOrder.dto';
 
 @Controller('orders')
+@Roles(UserRoles.ADMIN)
+@UseGuards(JwtGuard, RolesGuard)
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
 
   @Post()
-  @Roles(UserRoles.GUEST)
-  @UseGuards(JwtGuard, RolesGuard)
   createOrder(@Body() orderDto: OrderDto): Promise<InsertResult> {
     return this.ordersService.createOrder(orderDto);
   }
 
   @Get(':id')
-  @Roles(UserRoles.GUEST)
-  @UseGuards(JwtGuard, RolesGuard)
   async getOrderById(
     @Param('id', ParseIntPipe) id: number,
     @Req() { user },
@@ -50,39 +48,33 @@ export class OrdersController {
   }
 
   @Patch(':id')
-  @Roles(UserRoles.GUEST)
-  @UseGuards(JwtGuard, RolesGuard)
   async updateProduct(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateOrderDto: UpdateOrderDto,
-    @Req() { user },
+    //@Req() { user },
   ): Promise<UpdateResult> {
-    const order = await this.ordersService.getOrderById(id);
-    const orderGuestId = order.guest.id;
-    if (orderGuestId !== user.id) {
-      throw new UnauthorizedException('User ID does not match');
-    }
+    //const order = await this.ordersService.getOrderById(id);
+    // const orderGuestId = order.guest.id;
+    // if (orderGuestId !== user.id) {
+    //   throw new UnauthorizedException('User ID does not match');
+    // }
     return this.ordersService.updateOrder(id, updateOrderDto);
   }
 
   @Delete(':id')
-  @Roles(UserRoles.GUEST)
-  @UseGuards(JwtGuard, RolesGuard)
   async deleteOrderById(
     @Param('id', ParseIntPipe) id: number,
-    @Req() { user },
+    // @Req() { user },
   ): Promise<UpdateResult> {
-    const order = await this.ordersService.getOrderById(id);
-    const orderGuestId = order.guest.id;
-    if (orderGuestId !== user.id) {
-      throw new UnauthorizedException('User ID does not match');
-    }
+    // const order = await this.ordersService.getOrderById(id);
+    // const orderGuestId = order.guest.id;
+    // if (orderGuestId !== user.id) {
+    //   throw new UnauthorizedException('User ID does not match');
+    // }
     return this.ordersService.deleteOrderById(id);
   }
 
   @Get()
-  @Roles(UserRoles.GUEST)
-  @UseGuards(JwtGuard, RolesGuard)
   getUser(@Query() queryOrderDto: QueryOrderDto, @Req() { user }) {
     const userId = user.id;
     return this.ordersService.getOrder(queryOrderDto, userId);

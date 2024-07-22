@@ -5,8 +5,8 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -29,16 +29,16 @@ export class ProductsController {
     return this.productsService.getProducts(queryProductDto);
   }
 
+  @Post()
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
-  @Post('create')
   createUser(@Body() productDto: ProductDto): object {
     return this.productsService.createProduct(productDto);
   }
 
+  @Patch(':id')
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
-  @Put('update/:id')
   updateProduct(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProductDto: UpdateProductDto,
@@ -48,7 +48,7 @@ export class ProductsController {
 
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
-  @Delete('delete/:id')
+  @Delete(':id')
   deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UpdateResult> {
     return this.productsService.deleteProductById(id);
   }
