@@ -13,19 +13,10 @@ export class AuthController {
     private userService: UsersService,
   ) {}
 
-  // @Post('signup')
-  // signUp(@Body() createUserDto: CreateUserDto) {
-  //   return this.userService.createUser(createUserDto);
-  // }
-
   @Post('login')
   signIn(@Body() authDto: AuthDto) {
     return this.authService.signIn(authDto);
   }
-  // @Get('token')
-  // login(@Body('token') token: string) {
-  //   return ㄋthis.authService.getSessionByToken(token);
-  // }
 
   @Put('token')
   @UseGuards(JwtGuard)

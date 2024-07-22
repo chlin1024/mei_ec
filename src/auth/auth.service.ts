@@ -48,7 +48,7 @@ export class AuthService {
     const session = new LoginSession();
     session.token = jwtToken;
     session.userId = user.id;
-    session.createdAt = new Date(Date.now());
+    session.createdAt = new Date(Date.now()); //改為created at date column
     session.expiredAt = new Date(Date.now() + 3600 * 10 * 1000);
     await this.loginSessionRepository.save(session);
     return session.token;

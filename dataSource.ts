@@ -13,6 +13,6 @@ export default new DataSource({
   //entities: [__dirname + '/src/users/user.entity.{ts,js}'],
   entities: [__dirname + './src/**/*.entity.{ts,js}'],
   //entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/../**/migrations/*{.ts,.js}'], //__dirname + '/../**/migrations/*{.ts,.js}'
+  migrations: [__dirname + '/../**/migrations/*.ts'], //__dirname + '/../**/migrations/*{.ts,.js}'
   synchronize: false,
 });
