@@ -15,10 +15,10 @@ import { ProductDto } from './dto/product.dto';
 import { QueryProductDto } from './dto/queryProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { UpdateResult } from 'typeorm';
-import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
-import { RolesGuard } from 'src/roles.guard';
-import { Roles } from 'src/roles.decorator';
-import { UserRoles } from 'src/users/userRole.enum';
+import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
+import { RolesGuard } from '../auth/guard/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRoles } from '../users/userRole.enum';
 
 @Controller('products')
 export class ProductsController {

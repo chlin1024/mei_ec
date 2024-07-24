@@ -3,7 +3,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { AuthDto } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -11,7 +11,7 @@ import * as lodash from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginSession } from './loginSession.entity';
 import { IsNull, Repository, UpdateResult } from 'typeorm';
-import { User } from 'src/users/user.entity';
+import { User } from '../users/user.entity';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

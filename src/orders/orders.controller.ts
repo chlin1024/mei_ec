@@ -17,10 +17,10 @@ import { OrderDto } from './dto/order.dto';
 import { InsertResult, UpdateResult } from 'typeorm';
 import { Order } from './order.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
-import { UserRoles } from 'src/users/userRole.enum';
-import { Roles } from 'src/roles.decorator';
-import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
-import { RolesGuard } from 'src/roles.guard';
+import { UserRoles } from '../users/userRole.enum';
+import { Roles } from '../auth/roles.decorator';
+import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
+import { RolesGuard } from '../auth/guard/roles.guard';
 import { QueryOrderDto } from './dto/queryOrder.dto';
 
 @Controller('orders')

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -9,9 +9,8 @@ import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
-// import { APP_GUARD } from '@nestjs/core';
-// import { RolesGuard } from './roles.guard';
 import { GuestModule } from './guest/guest.module';
+import { LoggingMiddleware } from './middleware/logging.middleware';
 
 @Module({
   imports: [
@@ -33,14 +32,8 @@ import { GuestModule } from './guest/guest.module';
   ],
 })
 export class AppModule {
-  //implements NestModule
-  constructor(
-    private dataSource: DataSource,
-    //private readonly configService: ConfigService,
-  ) {
-    //console.log('JWT_SECRET:', this.configService.get<string>('JWT_SECRET'));
+  constructor(private dataSource: DataSource) {}
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggingMiddleware).forRoutes('*');
   }
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer.apply(LoggingMiddleware).forRoutes('*');
-  // }
 }

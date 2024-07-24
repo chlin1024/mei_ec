@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { GuestController } from './guest.controller';
 import { GuestService } from './guest.service';
-import { UsersModule } from 'src/users/users.module';
-import { OrdersModule } from 'src/orders/orders.module';
+import { UsersModule } from '../users/users.module';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
   controllers: [GuestController],

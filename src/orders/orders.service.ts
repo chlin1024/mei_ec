@@ -9,7 +9,7 @@ import { Order } from './order.entity';
 import { OrderDto } from './dto/order.dto';
 import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { QueryOrderDto } from './dto/queryOrder.dto';
 
 @Injectable()

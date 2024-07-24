@@ -1,17 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-//import { MyLogger } from './logger/logger';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { MyLogger } from './utils/logger/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(
-    AppModule,
-    //,{logger: new MyLogger(), //['log', 'error', 'warn', 'verbose'],}
-  );
+  const app = await NestFactory.create(AppModule, { logger: new MyLogger() });
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
-  app.useGlobalInterceptors(new LoggingInterceptor());
   await app.listen(3000);
 }
 

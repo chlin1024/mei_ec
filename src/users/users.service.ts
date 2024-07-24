@@ -5,13 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
-//import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
-//import { omit } from 'lodash';
 import { QueryUsersDto } from './dto/queryUsers.dto';
 
 @Injectable()
@@ -20,10 +18,7 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
-  // constructor(
-  //   @InjectRepository(UserRepository)
-  //   private userRepository: UserRepository,
-  // ) {}
+
   async createUser(createUserDto: CreateUserDto) {
     const { username, password, name, email } = createUserDto;
     const salt = await bcrypt.genSalt();

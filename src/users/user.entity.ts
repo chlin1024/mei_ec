@@ -1,4 +1,4 @@
-import { LoginSession } from 'src/auth/loginSession.entity';
+import { LoginSession } from '../auth/loginSession.entity';
 import {
   Column,
   DeleteDateColumn,

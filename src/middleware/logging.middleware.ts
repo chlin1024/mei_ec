@@ -1,26 +1,38 @@
-// import { Injectable, NestMiddleware } from '@nestjs/common';
-// import { NextFunction, Request, Response } from 'express';
-//import { MyLogger } from 'src/logger/logger';
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
+import { MyLogger } from '../utils/logger/logger';
+import { Timestamp } from 'typeorm';
 
-// @Injectable()
-// export class LoggingMiddleware implements NestMiddleware {
-//   private readonly logger = new MyLogger();
+interface CustomRequest extends Request {
+  user?: {
+    id: number;
+    username: string;
+    role: string;
+    iat: Timestamp;
+    exp: Timestamp;
+  };
+}
 
-//   use(req: Request, res: Response, next: NextFunction) {
-//     const start = Date.now();
+@Injectable()
+export class LoggingMiddleware implements NestMiddleware {
+  private readonly logger = new MyLogger();
 
-//     res.on('finish', () => {
-//       const duration = Date.now() - start;
-//       const { method, originalUrl } = req;
-//       const { statusCode } = res;
-//       //const userId = req.user?.id || 'unknown'; // Assuming user is added to request
-//       const body = method !== 'GET' ? JSON.stringify(req.body) : '';
+  use(req: CustomRequest, res: Response, next: NextFunction) {
+    const start = Date.now();
 
-//       this.logger.verbose(
-//         `[HTTP] ${statusCode} ${duration}ms ${method} ${originalUrl} BODY: ${body}`, //USER_ID: "${userId}
-//       );
-//     });
+    res.on('finish', () => {
+      //也有可能紀錄ip 避免惡意攻擊 duration優化時間使用
+      const duration = Date.now() - start;
+      const { method, originalUrl } = req;
+      const { statusCode } = res;
+      const userId = req.user?.id || 'unknown';
+      const body = method !== 'GET' ? JSON.stringify(req.body) : '';
 
-//     next();
-//   }
-// }
+      this.logger.verbose(
+        `[HTTP] ${statusCode} ${duration}ms ${method} ${originalUrl} USER_ID: ${userId} BODY: ${body}`, //USER_ID: "${userId}
+      );
+    });
+
+    next();
+  }
+}

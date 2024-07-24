@@ -18,10 +18,10 @@ import { User } from './user.entity';
 import { InsertResult, UpdateResult } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { QueryUsersDto } from './dto/queryUsers.dto';
-import { RolesGuard } from 'src/roles.guard';
-import { Roles } from 'src/roles.decorator';
+import { RolesGuard } from '../auth/guard/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { UserRoles } from './userRole.enum';
-import { JwtGuard } from 'src/auth/guard/jwtAuthentication.guard';
+import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 
 @Controller('users')
 export class UsersController {

@@ -1,8 +1,6 @@
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserDto {
-  id: number;
-
   @IsNotEmpty()
   @MinLength(8)
   @MaxLength(20)

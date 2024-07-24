@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateOrderTable1721391298449 implements MigrationInterface {
+export class CreateOrderTable1721628292489 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
         CREATE TYPE financial_status AS ENUM ('padding', 'paid', 'refund');
