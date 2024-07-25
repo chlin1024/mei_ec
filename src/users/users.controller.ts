@@ -27,8 +27,8 @@ import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 export class UsersController {
   constructor(private usersService: UsersService) {}
   @Get()
-  @Roles(UserRoles.ADMIN)
-  @UseGuards(JwtGuard, RolesGuard)
+  // @Roles(UserRoles.ADMIN)
+  // @UseGuards(JwtGuard, RolesGuard)
   getUser(@Query() queryUsersDto: QueryUsersDto): Promise<User[]> {
     return this.usersService.getUsers(queryUsersDto);
   }
