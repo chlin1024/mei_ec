@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from './order.entity';
-import { Product } from 'src/products/product.entity';
+import { Product } from '../products/product.entity';
 
 @Entity()
 export class OrderItem {
@@ -17,6 +17,9 @@ export class OrderItem {
   @ManyToOne(() => Order, (order) => order.orderItems) //typeORM的設定問題，為什麼樣設定在資料庫column名稱會是orderId
   @JoinColumn({ name: 'orderId' })
   order: Order;
+
+  @Column()
+  productId: number;
 
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'productId' })
