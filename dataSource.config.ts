@@ -3,6 +3,11 @@ import UserSeeder from './src/database/seeds/user.seed';
 import { DataSourceOptions } from 'typeorm';
 import { SeederOptions } from 'typeorm-extension';
 import * as dotenv from 'dotenv';
+import ProductSeeder from './src/database/seeds/product.seed';
+import { ProductFactory } from './src/database/factories/product.factory';
+import OrderSeeder from './src/database/seeds/order.seed';
+import { OrderFactory } from './src/database/factories/order.factory';
+import { OrderItemFactory } from './src/database/factories/orderItem.factor';
 dotenv.config();
 
 const port = parseInt(process.env.DATABASE_PORT) || 5432;
@@ -16,8 +21,8 @@ const databaseOptions: DataSourceOptions & SeederOptions = {
   entities: [__dirname + '/src/**/*.entity.{ts,js}'],
   migrations: [__dirname + '/src/database/**/migrations/*.ts'],
   synchronize: false,
-  seeds: [UserSeeder],
-  factories: [UsersFactory],
+  seeds: [UserSeeder, ProductSeeder, OrderSeeder],
+  factories: [UsersFactory, ProductFactory, OrderFactory, OrderItemFactory],
   // seeds: [__dirname + '/src/database/seeds/*.seed.{.ts,.js}'],
   // factories: [__dirname + '/src/database/factories/*.factory.{.ts,.js}'],
 };
