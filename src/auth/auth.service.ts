@@ -70,7 +70,6 @@ export class AuthService {
   async revokeSession(token: string): Promise<UpdateResult> {
     try {
       const session = await this.getSessionByToken(token);
-
       const result = await this.loginSessionRepository.softDelete(session.id);
       return result;
     } catch (error) {

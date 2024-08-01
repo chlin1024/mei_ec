@@ -39,7 +39,6 @@ export class UsersController {
   @Roles(UserRoles.GUEST)
   @UseGuards(JwtGuard, RolesGuard)
   deleteUserById(@Req() { user }): Promise<UpdateResult> {
-    console.log(user);
     return this.usersService.deleteUserById(user.id);
   }
 

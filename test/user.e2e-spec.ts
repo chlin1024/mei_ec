@@ -27,7 +27,7 @@ describe('UserController (e2e)', () => {
     adminToken = adminLoginResponse.body.token;
   });
   //set before test
-  const testUsername = 'UserForTest8';
+  const testUsername = 'UserForTest14';
 
   afterAll(async () => {
     await app.close();
@@ -106,14 +106,12 @@ describe('UserController (e2e)', () => {
   });
 
   let guestToken: string;
-  let guestId: number;
   it('should login ', async () => {
     const guestLoginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ username: testUsername, password: '1234rewQ@' })
       .expect(201);
     guestToken = guestLoginResponse.body.token;
-    guestId = guestLoginResponse.body.user.id;
   });
 
   it('should update user info ', () => {
@@ -127,7 +125,6 @@ describe('UserController (e2e)', () => {
   });
 
   it('should delete user ', () => {
-    console.log(guestId);
     return request(app.getHttpServer())
       .delete(`${USERS_URL}`)
       .set('Authorization', 'Bearer ' + guestToken)

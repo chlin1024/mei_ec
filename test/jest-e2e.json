@@ -5,5 +5,10 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "collectCoverage": true,
+  "collectCoverageFrom": ["src/**/*.ts"],
+  "coverageDirectory": "coverage",
+  "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
+  "coverageReporters": ["text"]
 }

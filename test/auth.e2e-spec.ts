@@ -20,15 +20,27 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
-  it('should log in', () => {
-    return request(app.getHttpServer())
+  let token: string;
+  it('should login ', async () => {
+    const guestLoginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
         username: 'test1234',
         password: '1234rewQ@',
       })
       .expect(201);
+    token = guestLoginResponse.body.token;
   });
+
+  // it('should log in', () => {
+  //   return request(app.getHttpServer())
+  //     .post('/auth/login')
+  //     .send({
+  //       username: 'test1234',
+  //       password: '1234rewQ@',
+  //     })
+  //     .expect(201);
+  // });
 
   it('should retun 400 when username is invalid', () => {
     return request(app.getHttpServer())
@@ -61,6 +73,7 @@ describe('AuthController (e2e)', () => {
   });
 
   it('should retun 404 when username not exsist', () => {
+    console.log(token);
     return request(app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -68,5 +81,12 @@ describe('AuthController (e2e)', () => {
         password: '1234rewQ@',
       })
       .expect(404);
+  });
+
+  it('should revoke session', () => {
+    return request(app.getHttpServer())
+      .patch('/auth/logout')
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200);
   });
 });
