@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product } from './product.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,7 +21,6 @@ export class ProductsService {
   async getProducts(queryProductDto: QueryProductDto) {
     const { page, limit, name, price, description, inStock, orderBy } =
       queryProductDto;
-    //console.log(name, price, description, inStock);
     const query = this.productsRepository.createQueryBuilder('product');
     query.andWhere('product.deletedAt IS NULL');
     if (price) {
@@ -46,9 +45,7 @@ export class ProductsService {
       const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
         | 'ASC'
         | 'DESC';
-      // order = {
-      //   [orderColumn]: orderType,
-      // };
+
       query.orderBy(orderColumn, orderType);
     }
 
@@ -68,6 +65,11 @@ export class ProductsService {
 
   async deleteProductById(id: number) {
     const query = this.productsRepository.createQueryBuilder('product');
+    const productExist = await query.where('product.id = :id', { id }).getOne();
+    if (!productExist) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
     const result = await query
       .softDelete()
       .where('product.id = :id', { id })

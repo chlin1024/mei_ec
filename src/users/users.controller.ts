@@ -3,13 +3,10 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
   Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -27,28 +24,23 @@ import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 export class UsersController {
   constructor(private usersService: UsersService) {}
   @Get()
-  // @Roles(UserRoles.ADMIN)
-  // @UseGuards(JwtGuard, RolesGuard)
+  @Roles(UserRoles.ADMIN)
+  @UseGuards(JwtGuard, RolesGuard)
   getUser(@Query() queryUsersDto: QueryUsersDto): Promise<User[]> {
     return this.usersService.getUsers(queryUsersDto);
   }
 
-  @Post('signup')
+  @Post()
   createUser(@Body() createUserDto: CreateUserDto): Promise<InsertResult> {
     return this.usersService.createUser(createUserDto);
   }
 
-  @Delete(':id')
+  @Delete()
   @Roles(UserRoles.GUEST)
   @UseGuards(JwtGuard, RolesGuard)
-  deleteUserById(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() { user },
-  ): Promise<UpdateResult> {
-    if (user.id !== id) {
-      throw new UnauthorizedException('User ID does not match');
-    }
-    return this.usersService.deleteUserById(id);
+  deleteUserById(@Req() { user }): Promise<UpdateResult> {
+    console.log(user);
+    return this.usersService.deleteUserById(user.id);
   }
 
   @Patch()

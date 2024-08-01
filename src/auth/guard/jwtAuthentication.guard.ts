@@ -18,8 +18,6 @@ export class JwtGuard implements CanActivate {
         throw new UnauthorizedException();
       }
       request.user = this.jwtService.verify(jwtToken);
-      console.log(request.user);
-
       return true;
     } catch (error) {
       throw new UnauthorizedException();

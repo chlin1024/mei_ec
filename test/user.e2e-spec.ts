@@ -6,8 +6,7 @@ import { User } from 'src/users/user.entity';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
-  const CREATE_USER_URL = '/users/signup';
-  const GET_USERS_URL = '/users';
+  const USERS_URL = '/users';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -19,25 +18,36 @@ describe('UserController (e2e)', () => {
     await app.init();
   });
 
+  let adminToken: string;
+  beforeAll(async () => {
+    const adminLoginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: 'test1234', password: '1234rewQ@' })
+      .expect(201);
+    adminToken = adminLoginResponse.body.token;
+  });
+  //set before test
+  const testUsername = 'UserForTest8';
+
   afterAll(async () => {
     await app.close();
   });
 
-  // it('should create a new user', () => {
-  //   return request(app.getHttpServer())
-  //     .post(CREATE_USER_URL)
-  //     .send({
-  //       username: 'test1234',
-  //       password: '1234rewQ@',
-  //       name: 'test',
-  //       email: 'Test0987@gmail.com',
-  //     })
-  //     .expect(201);
-  // });
+  it('should create a new user', () => {
+    return request(app.getHttpServer())
+      .post(USERS_URL)
+      .send({
+        username: testUsername,
+        password: '1234rewQ@',
+        name: 'Guest93',
+        email: 'Testing0987@gmail.com',
+      })
+      .expect(201);
+  });
 
   it('should return 400 when username is invalid', () => {
     return request(app.getHttpServer())
-      .post(CREATE_USER_URL)
+      .post(USERS_URL)
       .send({
         username: 'dds',
         password: '12349rewQ$',
@@ -49,7 +59,7 @@ describe('UserController (e2e)', () => {
 
   it('should return 400 when password is invalid', () => {
     return request(app.getHttpServer())
-      .post(CREATE_USER_URL)
+      .post(USERS_URL)
       .send({
         username: 'test1234',
         password: '12349rew',
@@ -61,7 +71,7 @@ describe('UserController (e2e)', () => {
 
   it('should return 400 when name is empty', () => {
     return request(app.getHttpServer())
-      .post(CREATE_USER_URL)
+      .post(USERS_URL)
       .send({
         username: 'test1234',
         password: '12349rew',
@@ -73,7 +83,7 @@ describe('UserController (e2e)', () => {
 
   it('should return 400 when email format is invalid', () => {
     return request(app.getHttpServer())
-      .post(CREATE_USER_URL)
+      .post(USERS_URL)
       .send({
         username: 'test1234',
         password: '12349rew',
@@ -83,28 +93,60 @@ describe('UserController (e2e)', () => {
       .expect(400);
   });
 
-  // it('should return 409 for duplicate username', () => {
-  //   return request(app.getHttpServer())
-  //     .post(CREATE_USER_URL)
-  //     .send({
-  //       username: 'test12349',
-  //       password: '12349rewQ@',
-  //       name: 'testing12349',
-  //       email: 'Test12349@gmail.com',
-  //     })
-  //     .expect(409);
-  // });
+  it('should return 409 for duplicate username', () => {
+    return request(app.getHttpServer())
+      .post(USERS_URL)
+      .send({
+        username: 'test1234',
+        password: '12349rewQ@',
+        name: 'testing12349',
+        email: 'Test12349@gmail.com',
+      })
+      .expect(409);
+  });
+
+  let guestToken: string;
+  let guestId: number;
+  it('should login ', async () => {
+    const guestLoginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ username: testUsername, password: '1234rewQ@' })
+      .expect(201);
+    guestToken = guestLoginResponse.body.token;
+    guestId = guestLoginResponse.body.user.id;
+  });
+
+  it('should update user info ', () => {
+    return request(app.getHttpServer())
+      .patch(USERS_URL)
+      .set('Authorization', 'Bearer ' + guestToken)
+      .send({
+        name: 'nameChange',
+      })
+      .expect(200);
+  });
+
+  it('should delete user ', () => {
+    console.log(guestId);
+    return request(app.getHttpServer())
+      .delete(`${USERS_URL}`)
+      .set('Authorization', 'Bearer ' + guestToken)
+      .expect(200);
+  });
 
   // GET /users
-  it('should return all users', () => {
-    return request(app.getHttpServer()).get(GET_USERS_URL).expect(200);
+  it('should return all users', async () => {
+    return request(app.getHttpServer())
+      .get(USERS_URL)
+      .set('Authorization', 'Bearer ' + adminToken)
+      .expect(200);
   });
 
   it('should return users, name matches "en"', async () => {
     const response = await request(app.getHttpServer())
-      .get(GET_USERS_URL)
-      .query({ name: 'en' });
-
+      .get(USERS_URL)
+      .query({ name: 'en' })
+      .set('Authorization', 'Bearer ' + adminToken);
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
     response.body.forEach((user: User) => {
@@ -114,8 +156,9 @@ describe('UserController (e2e)', () => {
 
   it('should return users, email  matches "@gmail"', async () => {
     const response = await request(app.getHttpServer())
-      .get(GET_USERS_URL)
-      .query({ email: '@gmail' });
+      .get(USERS_URL)
+      .query({ email: '@gmail' })
+      .set('Authorization', 'Bearer ' + adminToken);
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
     response.body.forEach((user: User) => {
@@ -125,8 +168,9 @@ describe('UserController (e2e)', () => {
 
   it('should order users by "email:desc"', async () => {
     const response = await request(app.getHttpServer())
-      .get(GET_USERS_URL)
-      .query({ orderBy: 'email:desc' });
+      .get(USERS_URL)
+      .query({ orderBy: 'email:desc' })
+      .set('Authorization', 'Bearer ' + adminToken);
     const users = response.body;
     const emails = users.map((user) => user.email);
     const sorted = [...emails].sort((a, b) => b.localeCompare(a));
@@ -136,16 +180,18 @@ describe('UserController (e2e)', () => {
 
   it('should paginate users', async () => {
     const response = await request(app.getHttpServer())
-      .get(GET_USERS_URL)
-      .query({ page: 1, limit: 3 });
+      .get(USERS_URL)
+      .query({ page: 1, limit: 3 })
+      .set('Authorization', 'Bearer ' + adminToken);
     expect(response.status).toBe(200);
     expect(response.body.length).toBeLessThanOrEqual(3);
   });
 
   it('should return an empty array when no users match', async () => {
     const response = await request(app.getHttpServer())
-      .get(GET_USERS_URL)
-      .query({ name: 'jh' });
+      .get(USERS_URL)
+      .query({ name: 'jh' })
+      .set('Authorization', 'Bearer ' + adminToken);
     expect(response.status).toBe(200);
     expect(response.body).toEqual([]);
   });
