@@ -36,6 +36,7 @@ export class UsersService {
     } catch (error) {
       if (error.code === '23505') {
         //username has to be uniqe
+        //TODO 發400 msg username重複
         throw new ConflictException(error.detail);
       } else {
         throw new InternalServerErrorException(error.detail);

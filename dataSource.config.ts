@@ -23,8 +23,8 @@ const databaseOptions: DataSourceOptions & SeederOptions = {
   synchronize: false,
   seeds: [UserSeeder, ProductSeeder, OrderSeeder],
   factories: [UsersFactory, ProductFactory, OrderFactory, OrderItemFactory],
-  // seeds: [__dirname + '/src/database/seeds/*.seed.{.ts,.js}'],
-  // factories: [__dirname + '/src/database/factories/*.factory.{.ts,.js}'],
+  // seeds: ['/src/database/seeds/*.seed.{.ts,.js}'],
+  // factories: ['/src/database/factories/*.factory.{.ts,.js}'],
 };
 
 export default databaseOptions;

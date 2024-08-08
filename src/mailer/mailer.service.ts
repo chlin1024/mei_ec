@@ -41,7 +41,7 @@ export class MailerService {
       const result = await transport.sendMail(mailOptions);
       return result;
     } catch (error) {
-      console.log(error);
+      error;
     }
   }
 }

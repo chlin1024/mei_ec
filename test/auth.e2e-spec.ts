@@ -2,9 +2,18 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
+import { seedDatabase } from '../src/database/seeds/seedRunner';
+import { clearDatabase } from '../src/database/clearDatabase';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
+  beforeAll(async () => {
+    await clearDatabase();
+  });
+
+  beforeAll(async () => {
+    await seedDatabase();
+  });
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -22,25 +31,15 @@ describe('AuthController (e2e)', () => {
 
   let token: string;
   it('should login ', async () => {
-    const guestLoginResponse = await request(app.getHttpServer())
+    const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        username: 'test1234',
+        username: 'admin1234',
         password: '1234rewQ@',
       })
       .expect(201);
-    token = guestLoginResponse.body.token;
+    token = loginResponse.body.token;
   });
-
-  // it('should log in', () => {
-  //   return request(app.getHttpServer())
-  //     .post('/auth/login')
-  //     .send({
-  //       username: 'test1234',
-  //       password: '1234rewQ@',
-  //     })
-  //     .expect(201);
-  // });
 
   it('should retun 400 when username is invalid', () => {
     return request(app.getHttpServer())
@@ -66,14 +65,13 @@ describe('AuthController (e2e)', () => {
     return request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        username: 'test1234',
+        username: 'admin1234',
         password: '1234rewQ%&&&&&&&&&&',
       })
       .expect(401);
   });
 
   it('should retun 404 when username not exsist', () => {
-    console.log(token);
     return request(app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -89,4 +87,6 @@ describe('AuthController (e2e)', () => {
       .set('Authorization', 'Bearer ' + token)
       .expect(200);
   });
+  //帶失效token 403
+  //帶假的token 403
 });

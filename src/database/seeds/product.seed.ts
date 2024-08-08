@@ -8,6 +8,6 @@ export default class ProductSeeder implements Seeder {
     factoryManager: SeederFactoryManager,
   ): Promise<any> {
     const userFactory = await factoryManager.get(Product);
-    await userFactory.saveMany(5);
+    await userFactory.saveMany(10);
   }
 }

@@ -3,11 +3,18 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { Product } from '../src/products/product.entity';
+import { seedDatabase } from '../src/database/seeds/seedRunner';
+import { clearDatabase } from '../src/database/clearDatabase';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   const PRODUCTS_URL = '/products';
-
+  beforeAll(async () => {
+    await clearDatabase();
+  });
+  beforeAll(async () => {
+    await seedDatabase();
+  });
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -21,7 +28,7 @@ describe('AppController (e2e)', () => {
   beforeAll(async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: 'test1234', password: '1234rewQ@' })
+      .send({ username: 'admin1234', password: '1234rewQ@' })
       .expect(201);
     token = loginResponse.body.token;
   });
@@ -69,7 +76,7 @@ describe('AppController (e2e)', () => {
   it('should return products, in stock number equals to 79', async () => {
     const response = await request(app.getHttpServer())
       .get(PRODUCTS_URL)
-      .query({ inStock: 79 });
+      .query({ inStock: 79 }); //TODO 用limit設定1去減少資源佔用
     expect(response.status).toBe(200);
     response.body.forEach((product: Product) => {
       expect(product.inStock).toEqual(79);
@@ -162,4 +169,6 @@ describe('AppController (e2e)', () => {
       .set('Authorization', 'Bearer ' + token)
       .expect(404);
   });
+
+  //TODO 如果帶guest token的情境
 });

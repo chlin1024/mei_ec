@@ -1,11 +1,11 @@
 export enum FinancialStatus {
-  PENDING = 'padding',
+  PENDING = 'pending',
   PAID = 'paid',
   REFUND = 'refund',
 }
 
 export enum FulfillmentStatus {
-  PENDING = 'padding',
+  PENDING = 'pending',
   FULFILLED = 'fulfilled',
   SALE_RETURN = 'sale_return',
 }

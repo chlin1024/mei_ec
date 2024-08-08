@@ -3,10 +3,19 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { User } from 'src/users/user.entity';
+import { clearDatabase } from './../src/database/clearDatabase';
+import { seedDatabase } from '../src/database/seeds/seedRunner';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
   const USERS_URL = '/users';
+  beforeAll(async () => {
+    await clearDatabase();
+  });
+
+  beforeAll(async () => {
+    await seedDatabase();
+  });
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -16,18 +25,19 @@ describe('UserController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
+    console.log('測試環境啟動 測試環境啟動 測試環境啟動 測試環境啟動');
   });
 
   let adminToken: string;
   beforeAll(async () => {
     const adminLoginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ username: 'test1234', password: '1234rewQ@' })
+      .send({ username: 'admin1234', password: '1234rewQ@' })
       .expect(201);
     adminToken = adminLoginResponse.body.token;
   });
   //set before test
-  const testUsername = 'UserForTest14';
+  const testUsername = 'testUser1234';
 
   afterAll(async () => {
     await app.close();
@@ -97,12 +107,12 @@ describe('UserController (e2e)', () => {
     return request(app.getHttpServer())
       .post(USERS_URL)
       .send({
-        username: 'test1234',
+        username: 'admin1234',
         password: '12349rewQ@',
         name: 'testing12349',
         email: 'Test12349@gmail.com',
       })
-      .expect(409);
+      .expect(409); //400 TODO
   });
 
   let guestToken: string;

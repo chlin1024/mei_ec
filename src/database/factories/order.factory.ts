@@ -9,7 +9,7 @@ import {
 export const OrderFactory = setSeederFactory(Order, async (faker: Faker) => {
   const order = new Order();
   order.adminId = 1;
-  order.guestId = faker.number.int({ min: 2, max: 26 });
+  order.guestId = faker.number.int({ min: 2, max: 20 });
   order.address = faker.location.streetAddress();
   order.financialStatus = faker.helpers.enumValue(FinancialStatus);
   order.fulfillmentStatus = faker.helpers.enumValue(FulfillmentStatus);

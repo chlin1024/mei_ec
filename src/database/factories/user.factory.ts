@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 
 export const UsersFactory = setSeederFactory(User, async (faker: Faker) => {
   const salt = await bcrypt.genSalt();
-  const password = faker.internet.password();
+  const password = '1234rewQ@';
   const hashPassword = await bcrypt.hash(password, salt);
   const name = faker.person.firstName();
   const user = new User();
