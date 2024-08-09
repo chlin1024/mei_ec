@@ -11,10 +11,14 @@ import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UsersService } from '../users/users.service';
 import { QueryOrderDto } from './dto/queryOrder.dto';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class OrdersService {
   constructor(
+    @InjectQueue('orderConfirmation')
+    private orderConfirmation: Queue,
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
@@ -33,15 +37,7 @@ export class OrdersService {
   }
 
   async createOrder(orderDto: OrderDto) {
-    const {
-      adminId,
-      guestId,
-      address,
-      financialStatus,
-      fulfillmentStatus,
-      note,
-      orderItems,
-    } = orderDto;
+    const { adminId, guestId, address, note, orderItems } = orderDto;
     const admin = await this.findRole(adminId);
     const guest = await this.findRole(guestId);
 
@@ -56,22 +52,30 @@ export class OrdersService {
       adminId,
       guestId,
       address,
-      financialStatus,
-      fulfillmentStatus,
       note,
     };
     const orderDraft = await this.ordersRepository.create(createOrder);
-    const newOrder = await this.ordersRepository.insert(orderDraft);
-    const newOrderId = newOrder.identifiers[0].id;
+    const result = await this.ordersRepository.insert(orderDraft);
+    const newOrder = result.generatedMaps[0];
     // Q: 需不需要做如果被成功整個rollback?
     for (const item of orderItems) {
-      const createOrderItem = { ...item, order: newOrderId };
+      const createOrderItem = { ...item, orderId: newOrder.id };
       const orderitemDraft =
         await this.orderItemsRepository.create(createOrderItem);
       await this.orderItemsRepository.insert(orderitemDraft);
     }
-
-    return newOrder;
+    const user = await this.userService.getUserById(guestId);
+    await this.orderConfirmation.add('sendOrderConfirmation', {
+      name: user.name,
+      email: user.email,
+      orderInfo: {
+        ...orderDto,
+        orderId: newOrder.id,
+        financialStatus: newOrder.financialStatus,
+        fulfillmentStatus: newOrder.fulfillmentStatus,
+      },
+    });
+    return result;
   }
 
   async getOrderById(id: number) {
