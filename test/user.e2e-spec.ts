@@ -25,7 +25,6 @@ describe('UserController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
-    console.log('測試環境啟動 測試環境啟動 測試環境啟動 測試環境啟動');
   });
 
   let adminToken: string;
@@ -112,7 +111,7 @@ describe('UserController (e2e)', () => {
         name: 'testing12349',
         email: 'Test12349@gmail.com',
       })
-      .expect(409); //400 TODO
+      .expect(409);
   });
 
   let guestToken: string;

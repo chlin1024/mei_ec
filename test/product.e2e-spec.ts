@@ -170,5 +170,21 @@ describe('AppController (e2e)', () => {
       .expect(404);
   });
 
-  //TODO 如果帶guest token的情境
+  let guestToken: string;
+  it('should login ', async () => {
+    const guestLoginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        username: 'guest1234',
+        password: '1234rewQ@',
+      })
+      .expect(201);
+    guestToken = guestLoginResponse.body.token;
+  });
+  it('should retrun 403 when bear guest Token', () => {
+    return request(app.getHttpServer())
+      .post(`${PRODUCTS_URL}`)
+      .set('Authorization', 'Bearer ' + guestToken)
+      .expect(403);
+  });
 });

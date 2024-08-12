@@ -36,10 +36,10 @@ export class OrdersService {
     }
   }
 
-  async createOrder(orderDto: OrderDto) {
-    const { adminId, guestId, address, note, orderItems } = orderDto;
+  async createOrder(orderDto: OrderDto, userId: number) {
+    const { adminId, address, note, orderItems } = orderDto;
     const admin = await this.findRole(adminId);
-    const guest = await this.findRole(guestId);
+    const guest = await this.findRole(userId);
 
     if (admin !== 'admin') {
       throw new UnauthorizedException(); //Q:用什麼exception比較好
@@ -50,7 +50,7 @@ export class OrdersService {
     }
     const createOrder = {
       adminId,
-      guestId,
+      guestId: userId,
       address,
       note,
     };
@@ -60,16 +60,18 @@ export class OrdersService {
     // Q: 需不需要做如果被成功整個rollback?
     for (const item of orderItems) {
       const createOrderItem = { ...item, orderId: newOrder.id };
-      const orderitemDraft =
-        await this.orderItemsRepository.create(createOrderItem);
+      const orderitemDraft = this.orderItemsRepository.create(createOrderItem);
       await this.orderItemsRepository.insert(orderitemDraft);
     }
-    const user = await this.userService.getUserById(guestId);
+    const user = await this.userService.getUserById(userId);
     await this.orderConfirmation.add('sendOrderConfirmation', {
-      name: user.name,
-      email: user.email,
+      guestInfo: {
+        name: user.name,
+        address: user.email,
+      },
       orderInfo: {
         ...orderDto,
+        guestId: userId,
         orderId: newOrder.id,
         financialStatus: newOrder.financialStatus,
         fulfillmentStatus: newOrder.fulfillmentStatus,

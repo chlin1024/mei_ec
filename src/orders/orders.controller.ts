@@ -6,15 +6,13 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Post,
   Query,
   Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { OrderDto } from './dto/order.dto';
-import { InsertResult, UpdateResult } from 'typeorm';
+import { UpdateResult } from 'typeorm';
 import { Order } from './order.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UserRoles } from '../users/userRole.enum';
@@ -29,10 +27,10 @@ import { QueryOrderDto } from './dto/queryOrder.dto';
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
 
-  @Post()
-  createOrder(@Body() orderDto: OrderDto): Promise<InsertResult> {
-    return this.ordersService.createOrder(orderDto);
-  }
+  // @Post()
+  // createOrder(@Body() orderDto: OrderDto): Promise<InsertResult> {
+  //   return this.ordersService.createOrder(orderDto);
+  // }
 
   @Get(':id')
   async getOrderById(

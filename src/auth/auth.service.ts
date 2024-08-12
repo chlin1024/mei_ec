@@ -30,7 +30,6 @@ export class AuthService {
 
   async signIn(authDto: AuthDto) {
     const user = await this.usersService.getUserByUserName(authDto.username);
-    // TODO 沒有username 特意設401 避免駭客測試
     const isMatch = await bcrypt.compare(authDto.password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException(`wrong username or password`);

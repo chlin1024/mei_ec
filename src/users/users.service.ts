@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -11,12 +13,16 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
 import { QueryUsersDto } from './dto/queryUsers.dto';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectQueue('userVerify')
+    private userVerify: Queue,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -32,12 +38,15 @@ export class UsersService {
     const userDraft = await this.usersRepository.create(createUserData);
     try {
       const newUser = await this.usersRepository.insert(userDraft);
+      await this.userVerify.add('sendUserVerify', {
+        name: name,
+        address: email,
+      });
       return newUser;
     } catch (error) {
       if (error.code === '23505') {
         //username has to be uniqe
-        //TODO 發400 msg username重複
-        throw new ConflictException(error.detail);
+        throw new ConflictException('Username already exists.');
       } else {
         throw new InternalServerErrorException(error.detail);
       }
@@ -89,8 +98,8 @@ export class UsersService {
       .getOne();
 
     if (!user) {
-      throw new NotFoundException(`User ${username} Not Found`);
-    }
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    } // 設401 避免駭客測試
     return user; //omit(user, ['password']); sign in 需要
   }
 

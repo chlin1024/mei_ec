@@ -33,10 +33,13 @@ export class MailerService {
       address,
       financialStatus,
       fulfillmentStatus,
-      note,
       orderItems,
       orderId,
     } = orderInfo;
+    let note = orderInfo.note;
+    if (!note) {
+      note = '';
+    }
     const transport = this.mailTransport();
     const mailOptions: Mail.Options = {
       from: 'mei.ec.verify@gmail.com',
@@ -67,6 +70,25 @@ export class MailerService {
       <p>備註: ${note}</p>
       `,
       //夾帶檔案,
+    };
+    try {
+      const result = await transport.sendMail(mailOptions);
+      return result;
+    } catch (error) {
+      error;
+    }
+  }
+
+  async sendUserEmail(guestInfo: Address) {
+    const transport = this.mailTransport();
+    const mailOptions: Mail.Options = {
+      from: 'mei.ec.verify@gmail.com',
+      //要傳送的對象
+      to: guestInfo.address,
+      //信件主旨
+      subject: `Mei EC 會員確認信`,
+      html: `<h1>會員確認</h1>
+      <p>親愛的${guestInfo.name}您好，<br>歡迎您使用mei的服務。</p>`,
     };
     try {
       const result = await transport.sendMail(mailOptions);

@@ -54,13 +54,15 @@ export class GuestController {
 
   @Get('orders')
   getUser(@Query() queryOrderDto: QueryOrderDto, @Req() { user }) {
-    const userId = user.id;
-    return this.ordersService.getOrder(queryOrderDto, userId);
+    return this.ordersService.getOrder(queryOrderDto, user.id);
   }
 
   @Post('orders')
-  createOrder(@Body() orderDto: OrderDto): Promise<InsertResult> {
-    return this.ordersService.createOrder(orderDto);
+  createOrder(
+    @Body() orderDto: OrderDto,
+    @Req() { user },
+  ): Promise<InsertResult> {
+    return this.ordersService.createOrder(orderDto, user.id);
   }
 
   @Patch('orders/:id')

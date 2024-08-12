@@ -4,6 +4,7 @@ import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { seedDatabase } from '../src/database/seeds/seedRunner';
 import { clearDatabase } from '../src/database/clearDatabase';
+import { Order } from 'src/orders/order.entity';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
@@ -30,28 +31,32 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
+  const guestUsername = 'guest1234';
+
   let token: string;
   it('should login ', async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        username: 'guest1234',
+        username: guestUsername,
         password: '1234rewQ@',
       })
       .expect(201);
     token = loginResponse.body.token;
   });
 
-  it('should return personal info', () => {
-    return request(app.getHttpServer())
-      .get(GUESTS_ORDERS_URL)
+  it('should return personal info', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/guests/me')
       .set('Authorization', 'Bearer ' + token)
       .expect(200);
-    //測username equal登入的username
+    expect(response.body.username).toBe(guestUsername);
   });
 
-  it('should return 401 for no token', () => {
-    return request(app.getHttpServer()).get(GUESTS_ORDERS_URL).expect(401);
+  it('should return 401 for no token', async () => {
+    return await request(app.getHttpServer())
+      .get(GUESTS_ORDERS_URL)
+      .expect(401);
   });
 
   it('should return order 1 info', async () => {
@@ -64,8 +69,51 @@ describe('AuthController (e2e)', () => {
 
   it('should return 401 when not user order', async () => {
     return await request(app.getHttpServer())
-      .get(`${GUESTS_ORDERS_URL}/2`)
+      .get(`${GUESTS_ORDERS_URL}/10`)
       .set('Authorization', 'Bearer ' + token)
       .expect(401);
+  });
+
+  it('should return orders info for user', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`${GUESTS_ORDERS_URL}`)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200);
+    response.body.forEach((order: Order) => {
+      expect(order.guestId).toEqual(2);
+    });
+  });
+
+  it('should create new order', async () => {
+    return await request(app.getHttpServer())
+      .post(`${GUESTS_ORDERS_URL}`)
+      .set('Authorization', 'Bearer ' + token)
+      .send({
+        adminId: 1,
+        guestId: 2,
+        address: '台北市寧夏路89號',
+        orderItems: [
+          { productId: 6, quantity: 90 },
+          { productId: 7, quantity: 5 },
+        ],
+      })
+      .expect(201);
+  });
+
+  it('should update order 11 address', async () => {
+    return await request(app.getHttpServer())
+      .patch(`${GUESTS_ORDERS_URL}/11`)
+      .set('Authorization', 'Bearer ' + token)
+      .send({
+        address: '台北市寧夏路10000號',
+      })
+      .expect(200);
+  });
+
+  it('should delete order 11 ', async () => {
+    return await request(app.getHttpServer())
+      .delete(`${GUESTS_ORDERS_URL}/11`)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200);
   });
 });
