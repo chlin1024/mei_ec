@@ -60,7 +60,6 @@ export class GuestController {
 
   @Post('orders')
   createOrder(@Body() orderDto: OrderDto): Promise<InsertResult> {
-    console.log(orderDto);
     return this.ordersService.createOrder(orderDto);
   }
 

@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { GuestModule } from './guest/guest.module';
 import { LoggingMiddleware } from './middleware/logging.middleware';
+import { MailerModule } from './mailer/mailer.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { LoggingMiddleware } from './middleware/logging.middleware';
     OrdersModule,
     ConfigModule.forRoot({ isGlobal: true }),
     GuestModule,
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [

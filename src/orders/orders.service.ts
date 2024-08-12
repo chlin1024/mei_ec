@@ -128,7 +128,6 @@ export class OrdersService {
     }
     if (orderItems) {
       for (const item of orderItems) {
-        console.log(item);
         await this.orderItemsRepository.update(
           { order: { id: id }, product: { id: item.productId } },
           { quantity: item.quantity },
