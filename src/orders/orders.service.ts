@@ -64,19 +64,23 @@ export class OrdersService {
       await this.orderItemsRepository.insert(orderitemDraft);
     }
     const user = await this.userService.getUserById(userId);
-    await this.orderConfirmation.add('sendOrderConfirmation', {
-      guestInfo: {
-        name: user.name,
-        address: user.email,
+    await this.orderConfirmation.add(
+      'sendOrderConfirmation',
+      {
+        guestInfo: {
+          name: user.name,
+          address: user.email,
+        },
+        orderInfo: {
+          ...orderDto,
+          guestId: userId,
+          orderId: newOrder.id,
+          financialStatus: newOrder.financialStatus,
+          fulfillmentStatus: newOrder.fulfillmentStatus,
+        },
       },
-      orderInfo: {
-        ...orderDto,
-        guestId: userId,
-        orderId: newOrder.id,
-        financialStatus: newOrder.financialStatus,
-        fulfillmentStatus: newOrder.fulfillmentStatus,
-      },
-    });
+      { attempts: 3 },
+    );
     return result;
   }
 

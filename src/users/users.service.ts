@@ -38,10 +38,14 @@ export class UsersService {
     const userDraft = await this.usersRepository.create(createUserData);
     try {
       const newUser = await this.usersRepository.insert(userDraft);
-      await this.userVerify.add('sendUserVerify', {
-        name: name,
-        address: email,
-      });
+      await this.userVerify.add(
+        'sendUserVerify',
+        {
+          name: name,
+          address: email,
+        },
+        { attempts: 3 },
+      );
       return newUser;
     } catch (error) {
       if (error.code === '23505') {

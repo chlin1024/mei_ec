@@ -1,4 +1,4 @@
-import { Process, Processor } from '@nestjs/bull';
+import { OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { MailerService } from 'src/mailer/mailer.service';
 
@@ -13,4 +13,11 @@ export class OrderConfirmation {
       job.data.orderInfo,
     );
   }
+
+  @OnQueueFailed()
+  async handleFailedJob(job: Job, error: Error) {
+    console.error(
+      `Order Confirmation with ID ${job.id} failed to send. Error: ${error.message}`,
+    );
+  } //問題:是不是要用logger
 }

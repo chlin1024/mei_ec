@@ -69,7 +69,6 @@ export class MailerService {
       <p>訂單狀態: ${fulfillmentStatus}</p>
       <p>備註: ${note}</p>
       `,
-      //夾帶檔案,
     };
     try {
       const result = await transport.sendMail(mailOptions);

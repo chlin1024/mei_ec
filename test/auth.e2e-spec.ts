@@ -3,13 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { seedDatabase } from '../src/database/seeds/seedRunner';
-import { clearDatabase } from '../src/database/clearDatabase';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  beforeAll(async () => {
-    await clearDatabase();
-  });
 
   beforeAll(async () => {
     await seedDatabase();

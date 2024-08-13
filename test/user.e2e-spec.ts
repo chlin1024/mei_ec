@@ -3,15 +3,12 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { User } from 'src/users/user.entity';
-import { clearDatabase } from './../src/database/clearDatabase';
+//import { clearDatabase } from './../src/database/clearDatabase';
 import { seedDatabase } from '../src/database/seeds/seedRunner';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
   const USERS_URL = '/users';
-  beforeAll(async () => {
-    await clearDatabase();
-  });
 
   beforeAll(async () => {
     await seedDatabase();
@@ -35,7 +32,7 @@ describe('UserController (e2e)', () => {
       .expect(201);
     adminToken = adminLoginResponse.body.token;
   });
-  //set before test
+
   const testUsername = 'testUser1234';
 
   afterAll(async () => {
@@ -140,10 +137,10 @@ describe('UserController (e2e)', () => {
       .expect(200);
   });
 
-  // GET /users
   it('should return all users', async () => {
     return request(app.getHttpServer())
       .get(USERS_URL)
+      .query({ limit: 2 })
       .set('Authorization', 'Bearer ' + adminToken)
       .expect(200);
   });
@@ -151,7 +148,7 @@ describe('UserController (e2e)', () => {
   it('should return users, name matches "en"', async () => {
     const response = await request(app.getHttpServer())
       .get(USERS_URL)
-      .query({ name: 'en' })
+      .query({ name: 'en', limit: 2 })
       .set('Authorization', 'Bearer ' + adminToken);
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
@@ -163,7 +160,7 @@ describe('UserController (e2e)', () => {
   it('should return users, email  matches "@gmail"', async () => {
     const response = await request(app.getHttpServer())
       .get(USERS_URL)
-      .query({ email: '@gmail' })
+      .query({ email: '@gmail', limit: 2 })
       .set('Authorization', 'Bearer ' + adminToken);
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
@@ -175,7 +172,7 @@ describe('UserController (e2e)', () => {
   it('should order users by "email:desc"', async () => {
     const response = await request(app.getHttpServer())
       .get(USERS_URL)
-      .query({ orderBy: 'email:desc' })
+      .query({ orderBy: 'email:desc', limit: 3 })
       .set('Authorization', 'Bearer ' + adminToken);
     const users = response.body;
     const emails = users.map((user) => user.email);

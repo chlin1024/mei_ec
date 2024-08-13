@@ -1,4 +1,4 @@
-import { Process, Processor } from '@nestjs/bull';
+import { OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { MailerService } from 'src/mailer/mailer.service';
 
@@ -10,4 +10,11 @@ export class UserVerify {
   async handleUserVerification(job: Job) {
     await this.mailerService.sendUserEmail(job.data);
   }
+
+  @OnQueueFailed()
+  async handleFailedJob(job: Job, error: Error) {
+    console.error(
+      `User verification with ID ${job.id} failed. Error: ${error.message}`,
+    );
+  } //問題:是不是要用logger
 }

@@ -11,7 +11,7 @@ export default class OrderSeeder implements Seeder {
     const orderFactory = await factoryManager.get(Order);
     await orderFactory.save({
       id: 1,
-      guestId: 2,
+      guestId: 3,
     });
     const orders = await orderFactory.saveMany(9);
     for (const order of orders) {

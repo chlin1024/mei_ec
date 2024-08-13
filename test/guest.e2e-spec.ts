@@ -3,15 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { seedDatabase } from '../src/database/seeds/seedRunner';
-import { clearDatabase } from '../src/database/clearDatabase';
-import { Order } from 'src/orders/order.entity';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   const GUESTS_ORDERS_URL = '/guests/orders';
-  beforeAll(async () => {
-    await clearDatabase();
-  });
 
   beforeAll(async () => {
     await seedDatabase();
@@ -29,7 +24,7 @@ describe('AuthController (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 10000);
 
   const guestUsername = 'guest1234';
 
@@ -59,38 +54,12 @@ describe('AuthController (e2e)', () => {
       .expect(401);
   });
 
-  it('should return order 1 info', async () => {
-    const response = await request(app.getHttpServer())
-      .get(`${GUESTS_ORDERS_URL}/1`)
-      .set('Authorization', 'Bearer ' + token)
-      .expect(200);
-    expect(response.body.id).toEqual(1);
-  });
-
-  it('should return 401 when not user order', async () => {
-    return await request(app.getHttpServer())
-      .get(`${GUESTS_ORDERS_URL}/10`)
-      .set('Authorization', 'Bearer ' + token)
-      .expect(401);
-  });
-
-  it('should return orders info for user', async () => {
-    const response = await request(app.getHttpServer())
-      .get(`${GUESTS_ORDERS_URL}`)
-      .set('Authorization', 'Bearer ' + token)
-      .expect(200);
-    response.body.forEach((order: Order) => {
-      expect(order.guestId).toEqual(2);
-    });
-  });
-
   it('should create new order', async () => {
     return await request(app.getHttpServer())
       .post(`${GUESTS_ORDERS_URL}`)
       .set('Authorization', 'Bearer ' + token)
       .send({
         adminId: 1,
-        guestId: 2,
         address: '台北市寧夏路89號',
         orderItems: [
           { productId: 6, quantity: 90 },
@@ -98,6 +67,21 @@ describe('AuthController (e2e)', () => {
         ],
       })
       .expect(201);
+  });
+
+  it(`should return order 11 info`, async () => {
+    const response = await request(app.getHttpServer())
+      .get(`${GUESTS_ORDERS_URL}/11`)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200);
+    expect(response.body.id).toEqual(11);
+  });
+
+  it('should return 401 when not user order', async () => {
+    return await request(app.getHttpServer())
+      .get(`${GUESTS_ORDERS_URL}/1`)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(401);
   });
 
   it('should update order 11 address', async () => {

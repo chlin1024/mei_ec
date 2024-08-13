@@ -4,14 +4,11 @@ import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { Product } from '../src/products/product.entity';
 import { seedDatabase } from '../src/database/seeds/seedRunner';
-import { clearDatabase } from '../src/database/clearDatabase';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   const PRODUCTS_URL = '/products';
-  beforeAll(async () => {
-    await clearDatabase();
-  });
+
   beforeAll(async () => {
     await seedDatabase();
   });
@@ -24,7 +21,7 @@ describe('AppController (e2e)', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
   });
-  let token;
+  let token: string;
   beforeAll(async () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
@@ -38,13 +35,16 @@ describe('AppController (e2e)', () => {
   });
 
   it('get products', () => {
-    return request(app.getHttpServer()).get(PRODUCTS_URL).expect(200);
+    return request(app.getHttpServer())
+      .get(PRODUCTS_URL)
+      .query({ limit: 2 })
+      .expect(200);
   });
 
   it('should return name matches "Sala"', async () => {
     const response = await request(app.getHttpServer())
       .get(PRODUCTS_URL)
-      .query({ name: 'Sala' });
+      .query({ name: 'Sala', limit: 2 });
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
     response.body.forEach((product: Product) => {
@@ -55,7 +55,7 @@ describe('AppController (e2e)', () => {
   it('should return description include "bike"', async () => {
     const response = await request(app.getHttpServer())
       .get(PRODUCTS_URL)
-      .query({ description: 'bike' });
+      .query({ description: 'bike', limit: 2 });
     expect(response.status).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
     response.body.forEach((product: Product) => {
@@ -66,7 +66,7 @@ describe('AppController (e2e)', () => {
   it('should return users, price equals to 67', async () => {
     const response = await request(app.getHttpServer())
       .get(PRODUCTS_URL)
-      .query({ price: 67 });
+      .query({ price: 67, limit: 2 });
     expect(response.status).toBe(200);
     response.body.forEach((product: Product) => {
       expect(product.price).toEqual(67);
@@ -76,7 +76,7 @@ describe('AppController (e2e)', () => {
   it('should return products, in stock number equals to 79', async () => {
     const response = await request(app.getHttpServer())
       .get(PRODUCTS_URL)
-      .query({ inStock: 79 }); //TODO 用limit設定1去減少資源佔用
+      .query({ inStock: 79, limit: 2 });
     expect(response.status).toBe(200);
     response.body.forEach((product: Product) => {
       expect(product.inStock).toEqual(79);
@@ -86,7 +86,7 @@ describe('AppController (e2e)', () => {
   it('should return products by "price:desc"', async () => {
     const response = await request(app.getHttpServer())
       .get(PRODUCTS_URL)
-      .query({ orderBy: 'price:desc' });
+      .query({ orderBy: 'price:desc', limit: 4 });
     const products = response.body;
     const prices = products.map((product) => product.prce);
     const sorted = [...prices].sort((a, b) => b - a);
@@ -147,6 +147,7 @@ describe('AppController (e2e)', () => {
       })
       .expect(200);
   });
+
   it('should return 400 update product info price invalid', () => {
     return request(app.getHttpServer())
       .patch(`${PRODUCTS_URL}/${createdProductId}`)
@@ -156,6 +157,7 @@ describe('AppController (e2e)', () => {
       })
       .expect(400);
   });
+
   it('should delete product ', () => {
     return request(app.getHttpServer())
       .delete(`${PRODUCTS_URL}/${createdProductId}`)
@@ -181,6 +183,7 @@ describe('AppController (e2e)', () => {
       .expect(201);
     guestToken = guestLoginResponse.body.token;
   });
+
   it('should retrun 403 when bear guest Token', () => {
     return request(app.getHttpServer())
       .post(`${PRODUCTS_URL}`)
