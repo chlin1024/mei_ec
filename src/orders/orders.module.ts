@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { BullModule } from '@nestjs/bull';
 import { OrderConfirmation } from './order.process';
 import { MailerModule } from 'src/mailer/mailer.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { MailerModule } from 'src/mailer/mailer.module';
     BullModule.registerQueue({ name: 'orderConfirmation' }),
     UsersModule,
     MailerModule,
+    AuthModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrderConfirmation],

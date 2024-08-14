@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -13,6 +14,8 @@ import { LoginSession } from './loginSession.entity';
 import { IsNull, Repository, UpdateResult } from 'typeorm';
 import { User } from '../users/user.entity';
 import { ConfigService } from '@nestjs/config';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +25,7 @@ export class AuthService {
     @InjectRepository(LoginSession)
     private loginSessionRepository: Repository<LoginSession>,
     private readonly configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   getJwtSecret(): string {
@@ -35,6 +39,7 @@ export class AuthService {
       throw new UnauthorizedException(`wrong username or password`);
     }
     const jwtToken = await this.createSession(user);
+
     return { user: lodash.omit(user, ['password']), token: jwtToken };
   }
 
@@ -51,6 +56,7 @@ export class AuthService {
     session.createdAt = new Date(Date.now()); //改為created at date column
     session.expiredAt = new Date(Date.now() + 3600 * 10 * 1000);
     await this.loginSessionRepository.save(session);
+    await this.cacheManager.set(user.username, jwtToken, 3600 * 10 * 1000);
     return session.token;
   }
 
