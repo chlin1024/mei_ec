@@ -56,7 +56,6 @@ export class AuthService {
     session.createdAt = new Date(Date.now()); //改為created at date column
     session.expiredAt = new Date(Date.now() + 3600 * 10 * 1000);
     await this.loginSessionRepository.save(session);
-    await this.cacheManager.set(user.username, jwtToken, 3600 * 10 * 1000);
     return session.token;
   }
 

@@ -23,7 +23,6 @@ export class JwtGuard implements CanActivate {
       const request = context.switchToHttp().getRequest();
       const jwtToken = request.headers.authorization.split(' ')[1];
       if (!jwtToken) {
-        console.log('NOT JWT');
         throw new UnauthorizedException();
       }
       request.user = this.jwtService.verify(jwtToken);
@@ -31,6 +30,7 @@ export class JwtGuard implements CanActivate {
       if (!session) {
         await this.authService.getSessionByToken(jwtToken);
       }
+      //note: 檢查jwt token與session user是否相同？
       return true;
     } catch (error) {
       console.log(error);
