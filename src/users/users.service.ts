@@ -13,16 +13,14 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
 import { QueryUsersDto } from './dto/queryUsers.dto';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectQueue('userVerify')
-    private userVerify: Queue,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -38,14 +36,10 @@ export class UsersService {
     const userDraft = await this.usersRepository.create(createUserData);
     try {
       const newUser = await this.usersRepository.insert(userDraft);
-      await this.userVerify.add(
-        'sendUserVerify',
-        {
-          name: name,
-          address: email,
-        },
-        { attempts: 3 },
-      );
+      this.eventEmitter.emit('user.registered', {
+        name: name,
+        address: email,
+      });
       return newUser;
     } catch (error) {
       if (error.code === '23505') {

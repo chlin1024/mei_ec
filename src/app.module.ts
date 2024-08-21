@@ -15,6 +15,7 @@ import { MailerModule } from './mailer/mailer.module';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import * as redisStore from 'cache-manager-redis-store';
       host: 'localhost',
       port: 6379,
     }),
+    EventEmitterModule.forRoot(),
     UsersModule,
     AuthModule,
     ProductsModule,

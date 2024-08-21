@@ -11,19 +11,17 @@ import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UsersService } from '../users/users.service';
 import { QueryOrderDto } from './dto/queryOrder.dto';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrdersService {
   constructor(
-    @InjectQueue('orderConfirmation')
-    private orderConfirmation: Queue,
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
     private userService: UsersService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async findRole(id: number) {
@@ -64,23 +62,20 @@ export class OrdersService {
       await this.orderItemsRepository.insert(orderitemDraft);
     }
     const user = await this.userService.getUserById(userId);
-    await this.orderConfirmation.add(
-      'sendOrderConfirmation',
-      {
-        guestInfo: {
-          name: user.name,
-          address: user.email,
-        },
-        orderInfo: {
-          ...orderDto,
-          guestId: userId,
-          orderId: newOrder.id,
-          financialStatus: newOrder.financialStatus,
-          fulfillmentStatus: newOrder.fulfillmentStatus,
-        },
+    const orderData = {
+      guestInfo: {
+        name: user.name,
+        address: user.email,
       },
-      { attempts: 3 },
-    );
+      orderInfo: {
+        ...orderDto,
+        guestId: userId,
+        orderId: newOrder.id,
+        financialStatus: newOrder.financialStatus,
+        fulfillmentStatus: newOrder.fulfillmentStatus,
+      },
+    };
+    this.eventEmitter.emit('order.created', orderData);
     return result;
   }
 

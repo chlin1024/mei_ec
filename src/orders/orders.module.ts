@@ -9,6 +9,7 @@ import { BullModule } from '@nestjs/bull';
 import { OrderConfirmation } from './order.process';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { OrderCreatedListener } from './order.listener';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { AuthModule } from 'src/auth/auth.module';
     AuthModule,
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, OrderConfirmation],
+  providers: [OrdersService, OrderConfirmation, OrderCreatedListener],
   exports: [OrdersService],
 })
 export class OrdersModule {}
