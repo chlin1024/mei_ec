@@ -13,23 +13,33 @@ import { GuestModule } from './guest/guest.module';
 import { LoggingMiddleware } from './middleware/logging.middleware';
 import { MailerModule } from './mailer/mailer.module';
 import { BullModule } from '@nestjs/bull';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeormConfig),
-    UsersModule,
-    AuthModule,
-    ProductsModule,
-    OrdersModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    GuestModule,
-    MailerModule,
     BullModule.forRoot({
       redis: {
         host: 'localhost',
         port: 6379,
       },
     }),
+    CacheModule.register({
+      max: 100,
+      ttl: 60 * 1000 * 30,
+      isGlobal: true,
+      store: redisStore,
+      host: 'localhost',
+      port: 6379,
+    }),
+    UsersModule,
+    AuthModule,
+    ProductsModule,
+    OrdersModule,
+    GuestModule,
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [
