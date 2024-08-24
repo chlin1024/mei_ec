@@ -11,10 +11,14 @@ import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UsersService } from '../users/users.service';
 import { QueryOrderDto } from './dto/queryOrder.dto';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class OrdersService {
   constructor(
+    @InjectQueue('orderConfirmation')
+    private orderConfirmation: Queue,
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
@@ -32,18 +36,10 @@ export class OrdersService {
     }
   }
 
-  async createOrder(orderDto: OrderDto) {
-    const {
-      adminId,
-      guestId,
-      address,
-      financialStatus,
-      fulfillmentStatus,
-      note,
-      orderItems,
-    } = orderDto;
+  async createOrder(orderDto: OrderDto, userId: number) {
+    const { adminId, address, note, orderItems } = orderDto;
     const admin = await this.findRole(adminId);
-    const guest = await this.findRole(guestId);
+    const guest = await this.findRole(userId);
 
     if (admin !== 'admin') {
       throw new UnauthorizedException(); //Q:用什麼exception比較好
@@ -54,24 +50,38 @@ export class OrdersService {
     }
     const createOrder = {
       adminId,
-      guestId,
+      guestId: userId,
       address,
-      financialStatus,
-      fulfillmentStatus,
       note,
     };
     const orderDraft = await this.ordersRepository.create(createOrder);
-    const newOrder = await this.ordersRepository.insert(orderDraft);
-    const newOrderId = newOrder.identifiers[0].id;
+    const result = await this.ordersRepository.insert(orderDraft);
+    const newOrder = result.generatedMaps[0];
     // Q: 需不需要做如果被成功整個rollback?
     for (const item of orderItems) {
-      const createOrderItem = { ...item, order: newOrderId };
-      const orderitemDraft =
-        await this.orderItemsRepository.create(createOrderItem);
+      const createOrderItem = { ...item, orderId: newOrder.id };
+      const orderitemDraft = this.orderItemsRepository.create(createOrderItem);
       await this.orderItemsRepository.insert(orderitemDraft);
     }
-
-    return newOrder;
+    const user = await this.userService.getUserById(userId);
+    await this.orderConfirmation.add(
+      'sendOrderConfirmation',
+      {
+        guestInfo: {
+          name: user.name,
+          address: user.email,
+        },
+        orderInfo: {
+          ...orderDto,
+          guestId: userId,
+          orderId: newOrder.id,
+          financialStatus: newOrder.financialStatus,
+          fulfillmentStatus: newOrder.fulfillmentStatus,
+        },
+      },
+      { attempts: 3 },
+    );
+    return result;
   }
 
   async getOrderById(id: number) {

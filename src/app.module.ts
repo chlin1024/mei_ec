@@ -12,6 +12,7 @@ import { DataSource } from 'typeorm';
 import { GuestModule } from './guest/guest.module';
 import { LoggingMiddleware } from './middleware/logging.middleware';
 import { MailerModule } from './mailer/mailer.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -23,6 +24,12 @@ import { MailerModule } from './mailer/mailer.module';
     ConfigModule.forRoot({ isGlobal: true }),
     GuestModule,
     MailerModule,
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [

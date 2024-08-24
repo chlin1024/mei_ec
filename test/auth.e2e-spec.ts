@@ -3,13 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { seedDatabase } from '../src/database/seeds/seedRunner';
-import { clearDatabase } from '../src/database/clearDatabase';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  beforeAll(async () => {
-    await clearDatabase();
-  });
 
   beforeAll(async () => {
     await seedDatabase();
@@ -71,14 +67,14 @@ describe('AuthController (e2e)', () => {
       .expect(401);
   });
 
-  it('should retun 404 when username not exsist', () => {
+  it('should retun 401 when username not exsist', () => {
     return request(app.getHttpServer())
       .post('/auth/login')
       .send({
         username: 'test6666',
         password: '1234rewQ@',
       })
-      .expect(404);
+      .expect(401);
   });
 
   it('should revoke session', () => {
@@ -87,6 +83,22 @@ describe('AuthController (e2e)', () => {
       .set('Authorization', 'Bearer ' + token)
       .expect(200);
   });
-  //帶失效token 403
-  //帶假的token 403
+
+  it('should return 403 with expired token', () => {
+    return request(app.getHttpServer())
+      .patch('/auth/logout')
+      .set(
+        'Authorization',
+        'Bearer ' +
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJwaG9lYmU5OSIsInJvbGUiOiJndWVzdCIsImlhdCI6MTcyMTYzMzQ0NSwiZXhwIjoxNzIxNjY5NDQ1fQ.p_sfIh5Hmmxvuk1URpCbbykDBpItVHSUTgJrwgiDECE',
+      )
+      .expect(401);
+  });
+
+  it('should return 403 with invalid token', () => {
+    return request(app.getHttpServer())
+      .patch('/auth/logout')
+      .set('Authorization', 'Bearer ' + 'thisIsInvalidToken')
+      .expect(401);
+  });
 });
