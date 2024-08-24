@@ -24,9 +24,14 @@ import { User } from '../users/user.entity';
 import { UserRoles } from '../users/userRole.enum';
 import { UsersService } from '../users/users.service';
 import { InsertResult, UpdateResult } from 'typeorm';
+import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
 
 @Roles(UserRoles.GUEST)
 @UseGuards(JwtGuard, RolesGuard) // new RolesGuard()
+@ApiTags('guests')
+@ApiBearerAuth()
+@ApiErrorResponses()
 @Controller('guests') //直接使用user service, order service或是從guest service
 export class GuestController {
   constructor(
@@ -53,11 +58,12 @@ export class GuestController {
   }
 
   @Get('orders')
-  getUser(@Query() queryOrderDto: QueryOrderDto, @Req() { user }) {
+  getOrders(@Query() queryOrderDto: QueryOrderDto, @Req() { user }) {
     return this.ordersService.getOrder(queryOrderDto, user.id);
   }
 
   @Post('orders')
+  @ApiCreatedResponse({ type: InsertResult }) //問題response不會被swagger plugin抓到
   createOrder(
     @Body() orderDto: OrderDto,
     @Req() { user },

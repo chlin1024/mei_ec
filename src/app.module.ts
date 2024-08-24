@@ -10,21 +10,24 @@ import { OrdersModule } from './orders/orders.module';
 import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { GuestModule } from './guest/guest.module';
-import { LoggingMiddleware } from './middleware/logging.middleware';
+import { LoggingMiddleware } from './utils/middleware/logging.middleware';
 import { MailerModule } from './mailer/mailer.module';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
+const port = parseInt(process.env.REDIS_PORT) || 6379;
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeormConfig),
     ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
-        port: 6379,
+        host: process.env.REDIS_HOST,
+        port: port,
       },
     }),
     CacheModule.register({
@@ -32,8 +35,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       ttl: 60 * 1000 * 30,
       isGlobal: true,
       store: redisStore,
-      host: 'localhost',
-      port: 6379,
+      host: process.env.REDIS_HOST,
+      port: port,
     }),
     EventEmitterModule.forRoot(),
     UsersModule,

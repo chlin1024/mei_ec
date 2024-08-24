@@ -60,8 +60,11 @@ export class UsersService {
     if (email) {
       query.andWhere('user.email LIKE :email', { email: `%${email}%` });
     }
+
     if (orderBy) {
+      console.log(orderBy);
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+      console.log(cleanOrderBy);
       const orderColumn = cleanOrderBy.split(':')[0];
       const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
         | 'ASC'

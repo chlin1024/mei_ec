@@ -19,7 +19,11 @@ import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UserRoles } from '../users/userRole.enum';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
 
+@ApiTags('products')
+@ApiErrorResponses()
 @Controller('products')
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
@@ -30,6 +34,7 @@ export class ProductsController {
   }
 
   @Post()
+  @ApiBearerAuth()
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   createUser(@Body() productDto: ProductDto): object {
@@ -37,6 +42,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   updateProduct(
@@ -46,9 +52,10 @@ export class ProductsController {
     return this.productsService.updateProduct(id, updateProductDto);
   }
 
+  @Delete(':id')
+  @ApiBearerAuth()
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
-  @Delete(':id')
   deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UpdateResult> {
     return this.productsService.deleteProductById(id);
   }

@@ -20,17 +20,17 @@ import { Roles } from '../auth/roles.decorator';
 import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { QueryOrderDto } from './dto/queryOrder.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
 
+@ApiTags('orders')
+@ApiErrorResponses()
+@ApiBearerAuth()
 @Controller('orders')
 @Roles(UserRoles.ADMIN)
 @UseGuards(JwtGuard, RolesGuard)
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
-
-  // @Post()
-  // createOrder(@Body() orderDto: OrderDto): Promise<InsertResult> {
-  //   return this.ordersService.createOrder(orderDto);
-  // }
 
   @Get(':id')
   async getOrderById(
@@ -49,26 +49,14 @@ export class OrdersController {
   async updateProduct(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateOrderDto: UpdateOrderDto,
-    //@Req() { user },
   ): Promise<UpdateResult> {
-    //const order = await this.ordersService.getOrderById(id);
-    // const orderGuestId = order.guest.id;
-    // if (orderGuestId !== user.id) {
-    //   throw new UnauthorizedException('User ID does not match');
-    // }
     return this.ordersService.updateOrder(id, updateOrderDto);
   }
 
   @Delete(':id')
   async deleteOrderById(
     @Param('id', ParseIntPipe) id: number,
-    // @Req() { user },
   ): Promise<UpdateResult> {
-    // const order = await this.ordersService.getOrderById(id);
-    // const orderGuestId = order.guest.id;
-    // if (orderGuestId !== user.id) {
-    //   throw new UnauthorizedException('User ID does not match');
-    // }
     return this.ordersService.deleteOrderById(id);
   }
 
@@ -77,17 +65,4 @@ export class OrdersController {
     const userId = user.id;
     return this.ordersService.getOrder(queryOrderDto, userId);
   }
-
-  // @Get('user/:id') //放在user比較符合RESTful API
-  // @Roles(UserRoles.GUEST)
-  // @UseGuards(JwtGuard, RolesGuard)
-  // getOrderByUserId(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Req() { user },
-  // ): Promise<Order[]> {
-  //   if (user.id !== id) {
-  //     throw new UnauthorizedException('User ID does not match');
-  //   }
-  //   return this.ordersService.getOrderByUserId(id);
-  // }
 }

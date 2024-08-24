@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
-import { MyLogger } from '../utils/logger/logger';
+import { MyLogger } from '../logger/logger';
 import { Timestamp } from 'typeorm';
 
 interface CustomRequest extends Request {
