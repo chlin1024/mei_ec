@@ -3,10 +3,13 @@ import * as nodemailer from 'nodemailer';
 import Mail, { Address } from 'nodemailer/lib/mailer';
 import * as dotenv from 'dotenv';
 import { OrderInfoDto } from 'src/orders/dto/order.dto';
+import { CreateUserResDto } from 'src/users/dto/createUserRes.dto';
+import { MyLogger } from 'src/utils/logger/logger';
 dotenv.config();
 
 @Injectable()
 export class MailerService {
+  private readonly logger = new MyLogger(MailerService.name);
   mailTransport() {
     const transporter = nodemailer.createTransport({
       //因為是用
@@ -74,11 +77,14 @@ export class MailerService {
       const result = await transport.sendMail(mailOptions);
       return result;
     } catch (error) {
-      error;
+      this.logger.error(
+        `Failed to send verification email to ${guestInfo.address}. Error: ${error.message}`,
+        error,
+      );
     }
   }
 
-  async sendUserEmail(guestInfo: Address) {
+  async sendUserEmail(guestInfo: CreateUserResDto) {
     const transport = this.mailTransport();
     const mailOptions: Mail.Options = {
       from: 'mei.ec.verify@gmail.com',
@@ -87,13 +93,17 @@ export class MailerService {
       //信件主旨
       subject: `Mei EC 會員確認信`,
       html: `<h1>會員確認</h1>
-      <p>親愛的${guestInfo.name}您好，<br>歡迎您使用mei的服務。</p>`,
+      <p>親愛的${guestInfo.name}您好，<br>歡迎您使用mei的服務。</p>
+      <p>會員編號:${guestInfo.userId}</p>`,
     };
     try {
       const result = await transport.sendMail(mailOptions);
       return result;
     } catch (error) {
-      error;
+      this.logger.error(
+        `Failed to send verification email to ${guestInfo.address}. Error: ${error.message}`,
+        error,
+      );
     }
   }
 }

@@ -11,7 +11,6 @@ import { OrderItem } from './orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UsersService } from '../users/users.service';
 import { QueryOrderDto } from './dto/queryOrder.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrdersService {
@@ -21,7 +20,6 @@ export class OrdersService {
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
     private userService: UsersService,
-    private eventEmitter: EventEmitter2,
   ) {}
 
   async findRole(id: number) {
@@ -75,8 +73,7 @@ export class OrdersService {
         fulfillmentStatus: newOrder.fulfillmentStatus,
       },
     };
-    this.eventEmitter.emit('order.created', orderData);
-    return result;
+    return orderData;
   }
 
   async getOrderById(id: number) {

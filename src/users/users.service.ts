@@ -13,14 +13,12 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
 import { QueryUsersDto } from './dto/queryUsers.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    private eventEmitter: EventEmitter2,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -36,11 +34,13 @@ export class UsersService {
     const userDraft = await this.usersRepository.create(createUserData);
     try {
       const newUser = await this.usersRepository.insert(userDraft);
-      this.eventEmitter.emit('user.registered', {
+      const userInfo = {
+        userId: newUser.raw[0].id,
         name: name,
         address: email,
-      });
-      return newUser;
+      };
+
+      return userInfo;
     } catch (error) {
       if (error.code === '23505') {
         //username has to be uniqe

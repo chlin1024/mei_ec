@@ -8,6 +8,7 @@ import {
   Query,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
@@ -27,6 +28,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
+import { MailerInterceptor } from 'src/utils/interceptor/mailer.interceptor';
+import { CreateUserResDto } from './dto/createUserRes.dto';
 
 @ApiTags('users')
 @ApiErrorResponses()
@@ -47,9 +50,9 @@ export class UsersController {
   @ApiConflictResponse({
     description: 'Username already exists.',
   })
-  async createUser(@Body() createUserDto: CreateUserDto): Promise<'OK'> {
-    await this.usersService.createUser(createUserDto);
-    return 'OK';
+  @UseInterceptors(MailerInterceptor)
+  createUser(@Body() createUserDto: CreateUserDto): Promise<CreateUserResDto> {
+    return this.usersService.createUser(createUserDto);
   }
 
   @Delete()

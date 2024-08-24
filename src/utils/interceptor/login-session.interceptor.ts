@@ -18,8 +18,8 @@ export class loginSessionCacheInterceptor implements NestInterceptor {
       tap(async (response) => {
         if (response?.token) {
           await this.cacheManager.set(
-            `username:${response.user.username}`,
             response.token,
+            response.user.username,
             3600 * 10 * 1000,
           );
         }

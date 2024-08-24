@@ -11,6 +11,7 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 import { OrderDto } from '../orders/dto/order.dto';
@@ -23,9 +24,11 @@ import { RolesGuard } from '../auth/guard/roles.guard';
 import { User } from '../users/user.entity';
 import { UserRoles } from '../users/userRole.enum';
 import { UsersService } from '../users/users.service';
-import { InsertResult, UpdateResult } from 'typeorm';
+import { UpdateResult } from 'typeorm';
 import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
+import { createOrederResDto } from 'src/orders/dto/createOrderRes.dto';
+import { MailerInterceptor } from 'src/utils/interceptor/mailer.interceptor';
 
 @Roles(UserRoles.GUEST)
 @UseGuards(JwtGuard, RolesGuard) // new RolesGuard()
@@ -63,11 +66,12 @@ export class GuestController {
   }
 
   @Post('orders')
-  @ApiCreatedResponse({ type: InsertResult }) //問題response不會被swagger plugin抓到
+  @UseInterceptors(MailerInterceptor)
+  @ApiCreatedResponse({ type: createOrederResDto })
   createOrder(
     @Body() orderDto: OrderDto,
     @Req() { user },
-  ): Promise<InsertResult> {
+  ): Promise<createOrederResDto> {
     return this.ordersService.createOrder(orderDto, user.id);
   }
 
