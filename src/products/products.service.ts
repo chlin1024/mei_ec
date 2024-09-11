@@ -76,4 +76,14 @@ export class ProductsService {
       .execute();
     return result;
   }
+
+  async getProductPrice(id: number) {
+    const query = this.productsRepository.createQueryBuilder('product');
+    const productPrice = await query
+      .where('product.id = :id', { id })
+      .select('product.price')
+      .getOne();
+    console.log(productPrice);
+    return productPrice;
+  }
 }

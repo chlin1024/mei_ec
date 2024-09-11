@@ -29,6 +29,7 @@ export class AuthController {
 
   @Patch('logout')
   @ApiBearerAuth()
+  //@ApiCreatedResponse({ description: 'Success.' })
   @UseGuards(JwtGuard)
   logout(@Req() req: Request) {
     const jwtToken = req.headers.authorization.split(' ')[1];

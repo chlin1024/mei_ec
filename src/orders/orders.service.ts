@@ -1,16 +1,23 @@
 import {
+  ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from './order.entity';
+import { DataSource, Repository } from 'typeorm';
+import { Order } from './entities/order.entity';
 import { OrderDto } from './dto/order.dto';
-import { OrderItem } from './orderItem.entity';
+import { OrderItem } from './entities/orderItem.entity';
 import { UpdateOrderDto } from './dto/updateOrder.dto';
 import { UsersService } from '../users/users.service';
 import { QueryOrderDto } from './dto/queryOrder.dto';
+import { ProductsService } from '../products/products.service';
+import { FinancialStatus } from './orderStatus.enum';
+import { CheckoutTransaction } from './entities/checkoutTransaction.entity';
+import { OrderTransaction } from './entities/orderTransaction.entity';
+import { RefundTransaction } from './entities/refundTransaction.entity';
 
 @Injectable()
 export class OrdersService {
@@ -19,7 +26,11 @@ export class OrdersService {
     private ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private orderItemsRepository: Repository<OrderItem>,
+    @InjectRepository(CheckoutTransaction)
+    private checkoutTransactionRepository: Repository<CheckoutTransaction>,
     private userService: UsersService,
+    private productsService: ProductsService,
+    private dataSource: DataSource,
   ) {}
 
   async findRole(id: number) {
@@ -38,7 +49,7 @@ export class OrdersService {
     const guest = await this.findRole(userId);
 
     if (admin !== 'admin') {
-      throw new UnauthorizedException(); //Q:用什麼exception比較好
+      throw new UnauthorizedException();
     }
 
     if (guest !== 'guest') {
@@ -53,7 +64,6 @@ export class OrdersService {
     const orderDraft = await this.ordersRepository.create(createOrder);
     const result = await this.ordersRepository.insert(orderDraft);
     const newOrder = result.generatedMaps[0];
-    // Q: 需不需要做如果被成功整個rollback?
     for (const item of orderItems) {
       const createOrderItem = { ...item, orderId: newOrder.id };
       const orderitemDraft = this.orderItemsRepository.create(createOrderItem);
@@ -212,5 +222,128 @@ export class OrdersService {
       .leftJoinAndSelect('order.orderItems', 'orderItem')
       .getMany();
     return results;
+  }
+
+  async checkoutOrder(orderId: number) {
+    const order = await this.getOrderById(orderId);
+    if (
+      order.financialStatus === FinancialStatus.PAID ||
+      order.financialStatus === FinancialStatus.REFUND
+    ) {
+      throw new ConflictException('Order is already paid or refunded');
+    }
+    //計算金額
+    let amount: number = 0;
+    for (const item of order.orderItems) {
+      const price = await this.productsService.getProductPrice(item.productId);
+      console.log(price.price * item.quantity);
+      const sell = price.price * item.quantity;
+      console.log(typeof sell, sell);
+      amount += sell;
+    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      //串接linepay
+
+      //存transaction
+      const createCheckout = {
+        order_id: orderId,
+        amount,
+      };
+      const checkoutDraft = queryRunner.manager.create(
+        CheckoutTransaction,
+        createCheckout,
+      );
+      const newCheckout = await queryRunner.manager.save(
+        CheckoutTransaction,
+        checkoutDraft,
+      );
+      const saveTransaction = {
+        order_id: orderId,
+        checkout_transaction_id: newCheckout.id,
+      };
+      const draft = queryRunner.manager.create(
+        OrderTransaction,
+        saveTransaction,
+      );
+      await queryRunner.manager.save(OrderTransaction, draft);
+      await queryRunner.manager.update(Order, orderId, {
+        financialStatus: FinancialStatus.PAID,
+      });
+      await queryRunner.commitTransaction();
+      return newCheckout;
+    } catch (error) {
+      console.log(error);
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getCheckoutTransactionById(id: number) {
+    const query = this.checkoutTransactionRepository.createQueryBuilder(
+      'checkout_transaction',
+    );
+    const checkoutTransaction = await query
+      .where('checkout_transaction.order_id = :id', { id })
+      .getOne();
+    if (!checkoutTransaction) {
+      throw new NotFoundException(`Checkout with ID ${id} not found`);
+    }
+    return checkoutTransaction;
+  }
+
+  async refundOrder(orderId: number) {
+    const order = await this.getOrderById(orderId);
+    if (
+      order.financialStatus === FinancialStatus.PENDING ||
+      order.financialStatus === FinancialStatus.REFUND
+    ) {
+      throw new ConflictException('Order is already refunded or is not paid');
+    }
+    const checkoutTransaction = await this.getCheckoutTransactionById(orderId);
+    const amount = checkoutTransaction.amount;
+    if (!checkoutTransaction) {
+      throw new ConflictException('Checkout Transaction does not exsist');
+    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const createRefund = {
+        order_id: orderId,
+        amount,
+      };
+      const refundDraft = queryRunner.manager.create(
+        RefundTransaction,
+        createRefund,
+      );
+      const newRefund = await queryRunner.manager.save(
+        RefundTransaction,
+        refundDraft,
+      );
+      const saveTransaction = {
+        order_id: orderId,
+        refund_transaction_id: newRefund.id,
+      };
+      const draft = queryRunner.manager.create(
+        OrderTransaction,
+        saveTransaction,
+      );
+      await queryRunner.manager.save(OrderTransaction, draft);
+      await queryRunner.manager.update(Order, orderId, {
+        financialStatus: FinancialStatus.REFUND,
+      });
+      await queryRunner.commitTransaction();
+      return newRefund;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

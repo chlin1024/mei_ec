@@ -23,6 +23,7 @@ import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -39,7 +40,7 @@ export class UsersController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Success.', type: User })
-  @ApiOperation({ summary: 'test' })
+  @ApiOperation({ summary: 'Get Users data' })
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   getUser(@Query() queryUsersDto: QueryUsersDto): Promise<User[]> {
@@ -50,6 +51,7 @@ export class UsersController {
   @ApiConflictResponse({
     description: 'Username already exists.',
   })
+  @ApiCreatedResponse({ description: 'User Created.', type: CreateUserResDto })
   @UseInterceptors(MailerInterceptor)
   createUser(@Body() createUserDto: CreateUserDto): Promise<CreateUserResDto> {
     return this.usersService.createUser(createUserDto);
@@ -57,6 +59,7 @@ export class UsersController {
 
   @Delete()
   @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Success.' })
   @Roles(UserRoles.GUEST)
   @UseGuards(JwtGuard, RolesGuard)
   deleteUserById(@Req() { user }): Promise<UpdateResult> {
@@ -65,6 +68,7 @@ export class UsersController {
 
   @Patch()
   @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Success.' })
   @Roles(UserRoles.GUEST)
   @UseGuards(JwtGuard, RolesGuard)
   updateUser(

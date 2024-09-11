@@ -1,25 +1,19 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
-  Patch,
-  Query,
+  Post,
   Req,
   UnauthorizedException,
-  UseGuards,
+  // UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { UpdateResult } from 'typeorm';
-import { Order } from './order.entity';
-import { UpdateOrderDto } from './dto/updateOrder.dto';
-import { UserRoles } from '../users/userRole.enum';
-import { Roles } from '../auth/roles.decorator';
-import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
-import { RolesGuard } from '../auth/guard/roles.guard';
-import { QueryOrderDto } from './dto/queryOrder.dto';
+import { Order } from './entities/order.entity';
+// import { UserRoles } from '../users/userRole.enum';
+// import { Roles } from '../auth/roles.decorator';
+// import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
+// import { RolesGuard } from '../auth/guard/roles.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
 
@@ -27,8 +21,8 @@ import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
 @ApiErrorResponses()
 @ApiBearerAuth()
 @Controller('orders')
-@Roles(UserRoles.ADMIN)
-@UseGuards(JwtGuard, RolesGuard)
+//@Roles(UserRoles.ADMIN)
+//@UseGuards(JwtGuard, RolesGuard)
 export class OrdersController {
   constructor(private ordersService: OrdersService) {}
 
@@ -45,24 +39,34 @@ export class OrdersController {
     return order;
   }
 
-  @Patch(':id')
-  async updateProduct(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateOrderDto: UpdateOrderDto,
-  ): Promise<UpdateResult> {
-    return this.ordersService.updateOrder(id, updateOrderDto);
+  @Post('/checkout/:id')
+  async checkoutOrder(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.checkoutOrder(id);
   }
 
-  @Delete(':id')
-  async deleteOrderById(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<UpdateResult> {
-    return this.ordersService.deleteOrderById(id);
+  @Post('/refund/:id')
+  async refundOrder(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.refundOrder(id);
   }
 
-  @Get()
-  getUser(@Query() queryOrderDto: QueryOrderDto, @Req() { user }) {
-    const userId = user.id;
-    return this.ordersService.getOrder(queryOrderDto, userId);
-  }
+  // @Patch(':id')
+  // async updateProduct(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Body() updateOrderDto: UpdateOrderDto,
+  // ): Promise<UpdateResult> {
+  //   return this.ordersService.updateOrder(id, updateOrderDto);
+  // }
+
+  // @Delete(':id')
+  // async deleteOrderById(
+  //   @Param('id', ParseIntPipe) id: number,
+  // ): Promise<UpdateResult> {
+  //   return this.ordersService.deleteOrderById(id);
+  // }
+
+  // @Get()
+  // getUser(@Query() queryOrderDto: QueryOrderDto, @Req() { user }) {
+  //   const userId = user.id;
+  //   return this.ordersService.getOrder(queryOrderDto, userId);
+  // }
 }

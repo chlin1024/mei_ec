@@ -17,7 +17,7 @@ import { JwtGuard } from '../auth/guard/jwtAuthentication.guard';
 import { OrderDto } from '../orders/dto/order.dto';
 import { QueryOrderDto } from '../orders/dto/queryOrder.dto';
 import { UpdateOrderDto } from '../orders/dto/updateOrder.dto';
-import { Order } from '../orders/order.entity';
+import { Order } from '../orders/entities/order.entity';
 import { OrdersService } from '../orders/orders.service';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/guard/roles.guard';

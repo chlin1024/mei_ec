@@ -16,6 +16,7 @@ import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { LinePayModule } from './line-pay/line-pay.module';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -45,6 +46,7 @@ const port = parseInt(process.env.REDIS_PORT) || 6379;
     OrdersModule,
     GuestModule,
     MailerModule,
+    LinePayModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,4 +1,4 @@
-import { User } from '../users/user.entity';
+import { User } from '../../users/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -7,10 +7,13 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { OrderItem } from './orderItem.entity';
-import { FinancialStatus, FulfillmentStatus } from './orderStatus.enum';
+import { OrderItem } from '../entities/orderItem.entity';
+import { FinancialStatus, FulfillmentStatus } from '../orderStatus.enum';
+import { CheckoutTransaction } from './checkoutTransaction.entity';
+import { RefundTransaction } from './refundTransaction.entity';
 
 @Entity()
 export class Order {
@@ -46,7 +49,7 @@ export class Order {
     enum: FulfillmentStatus,
     default: FulfillmentStatus.PENDING,
   })
-  fulfillmentStatus: string; // padding, fulfilled, sale_return
+  fulfillmentStatus: string;
 
   @Column({ nullable: true })
   note: string;
@@ -59,4 +62,16 @@ export class Order {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order, { cascade: true })
   orderItems: OrderItem[];
+
+  @OneToOne(
+    () => CheckoutTransaction,
+    (checkoutTransaction) => checkoutTransaction.order,
+  )
+  checkoutTransaction: CheckoutTransaction;
+
+  @OneToOne(
+    () => RefundTransaction,
+    (refundTransaction) => refundTransaction.order,
+  )
+  refundTransaction: RefundTransaction;
 }
