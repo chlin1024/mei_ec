@@ -13,6 +13,7 @@ export class OrderDto {
 export class OrderItemDto {
   productId: number; //product id
   quantity: number;
+  selling_price: number;
 }
 
 export class OrderInfoDto extends OrderDto {

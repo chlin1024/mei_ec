@@ -31,6 +31,9 @@ export class OrderItem {
   @Column()
   quantity: number;
 
+  @Column()
+  selling_price: number;
+
   @DeleteDateColumn()
   deletedAt: Date;
 }

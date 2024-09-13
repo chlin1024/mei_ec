@@ -81,9 +81,9 @@ export class ProductsService {
     const query = this.productsRepository.createQueryBuilder('product');
     const productPrice = await query
       .where('product.id = :id', { id })
-      .select('product.price')
+      .select('product.sale_price')
       .getOne();
     console.log(productPrice);
-    return productPrice;
+    return productPrice.sale_price;
   }
 }

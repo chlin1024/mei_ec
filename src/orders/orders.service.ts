@@ -65,7 +65,14 @@ export class OrdersService {
     const result = await this.ordersRepository.insert(orderDraft);
     const newOrder = result.generatedMaps[0];
     for (const item of orderItems) {
-      const createOrderItem = { ...item, orderId: newOrder.id };
+      const sellingPrice = await this.productsService.getProductPrice(
+        item.productId,
+      );
+      const createOrderItem = {
+        ...item,
+        orderId: newOrder.id,
+        selling_price: sellingPrice,
+      };
       const orderitemDraft = this.orderItemsRepository.create(createOrderItem);
       await this.orderItemsRepository.insert(orderitemDraft);
     }
@@ -235,11 +242,7 @@ export class OrdersService {
     //計算金額
     let amount: number = 0;
     for (const item of order.orderItems) {
-      const price = await this.productsService.getProductPrice(item.productId);
-      console.log(price.price * item.quantity);
-      const sell = price.price * item.quantity;
-      console.log(typeof sell, sell);
-      amount += sell;
+      amount += item.selling_price * item.quantity;
     }
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -275,7 +278,6 @@ export class OrdersService {
       await queryRunner.commitTransaction();
       return newCheckout;
     } catch (error) {
-      console.log(error);
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(error);
     } finally {
