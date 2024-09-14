@@ -59,4 +59,14 @@ export class ProductsController {
   deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UpdateResult> {
     return this.productsService.deleteProductById(id);
   }
+
+  @Get('/discount/:discount')
+  applyDiscount(@Param('discount', ParseIntPipe) discountRate: number) {
+    return this.productsService.applyProductDiscount(discountRate);
+  }
+
+  @Get('/restore_price')
+  restorePrice() {
+    return this.productsService.restoreProductPrice();
+  }
 }

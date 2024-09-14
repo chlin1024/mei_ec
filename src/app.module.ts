@@ -18,6 +18,7 @@ import * as redisStore from 'cache-manager-redis-store';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { LinePayModule } from './line-pay/line-pay.module';
 import * as dotenv from 'dotenv';
+import { ScheduleModule } from '@nestjs/schedule';
 dotenv.config();
 
 const port = parseInt(process.env.REDIS_PORT) || 6379;
@@ -40,6 +41,7 @@ const port = parseInt(process.env.REDIS_PORT) || 6379;
       port: port,
     }),
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
     ProductsModule,
