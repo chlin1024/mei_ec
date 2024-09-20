@@ -40,14 +40,11 @@ export class LinePayService {
     let signature = '';
 
     // 根據不同方式(method)生成MAC
-
     if (method === 'GET') {
-      console.log('GET', apiPath, '裡你', queryString);
       signature = this.signKey(
         channelSecret,
         channelSecret + apiPath + queryString + nonce,
       );
-      console.log('GET', signature);
     } else if (method === 'POST') {
       signature = this.signKey(
         channelSecret,
@@ -73,7 +70,7 @@ export class LinePayService {
     const response = await firstValueFrom(this.httpService.request(reqData));
     //檢查return code
     const processedResponse = this.handleBigInteger(response.data);
-
+    console.log(response);
     return processedResponse;
   }
 
@@ -111,6 +108,8 @@ export class LinePayService {
       };
       const response = await this.requestOnlineAPI(data);
       console.log('Response: ', response);
+      console.log('闊', response.info.transactionId);
+      await this.startPolling(response.info.transactionId);
       return response;
     } catch (error) {
       console.log(error);
@@ -119,7 +118,7 @@ export class LinePayService {
   private intervalId = null;
   async getPayRequestStatus(requestTransactionId) {
     try {
-      console.log('status');
+      console.log(requestTransactionId);
       if (!requestTransactionId) throw new Error('Transaction ID is required!');
       const response = await this.requestOnlineAPI({
         method: 'GET',
@@ -131,10 +130,10 @@ export class LinePayService {
           break;
         case '0110':
           console.log('Finished');
-        // Do something
+          break;
         case '0121':
           console.log('Cancelled');
-        // Do something
+          break;
 
         //...
 
@@ -146,6 +145,7 @@ export class LinePayService {
     }
   }
   async startPolling(requestTransactionId: string) {
+    console.log('蒯', requestTransactionId);
     if (this.intervalId) {
       clearInterval(this.intervalId); // Clear any existing interval
     }
