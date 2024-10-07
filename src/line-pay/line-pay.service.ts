@@ -55,6 +55,7 @@ export class LinePayService {
       'X-LINE-ChannelId': channelId,
       'X-LINE-Authorization': signature,
       'X-LINE-Authorization-Nonce': nonce,
+      'X-LINE-ChannelSecret': channelSecret,
     };
     const reqData = {
       method: method,
