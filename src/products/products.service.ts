@@ -107,12 +107,12 @@ export class ProductsService {
     }
   }
 
-  @Cron('0 14 * * * *')
+  @Cron('0 31 * * * *')
   handleDiscount() {
     this.applyProductDiscount(0.9);
   }
 
-  @Cron('0 9 * * * *')
+  @Cron('0 30 * * * *')
   handleCron() {
     this.restoreProductPrice();
   }
