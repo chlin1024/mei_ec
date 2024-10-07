@@ -7,13 +7,13 @@ This project is a scalable backend server for an e-commerce platform, developed 
 
 ## Features
 
-- **Server Development**: Built a robust backend server using NestJS, integrating TypeORM for database interactions and PostgreSQL for data storage.
-- **CRUD Operations & Pagination**: Implemented comprehensive CRUD operations, pagination, and search functionality to enhance data retrieval and management.
-- **API Design**: Designed RESTful APIs and documented them using Swagger for clear, accessible communication of endpoint functionality.
+- **Server Development**: Built a backend server using NestJS, integrating TypeORM for database interactions and PostgreSQL for data storage.
+- **CRUD Operations & Pagination**: Implemented CRUD operations, pagination, and search functionality to enhance data retrieval and management.
+- **API Design**: Designed RESTful APIs and documented them using Swagger to communication of endpoint functionality.
 - **Data Consistency**: Utilized database transactions to ensure data integrity and consistency across operations.
-- **Logging & Monitoring**: Integrated a logging system for comprehensive tracking of system activities and error management, facilitating effective monitoring and debugging.
+- **Logging & Monitoring**: Integrated a logging system for tracking of system activities and error management, facilitating effective monitoring and debugging.
 - **Testing & Reliability**: Conducted end-to-end (E2E) testing using Jest to validate the reliability and performance of API endpoints.
-- **Background Job Management**: Leveraged Bull for managing background jobs and task queues, enabling asynchronous email sending and other tasks.
+- **Background Job Management**: Leveraged Bull for managing background jobs and task queues, enabling asynchronous email sending.
 - **Event-Driven Architecture**: Employed EventEmitter to establish an event-driven architecture, streamlining modular handling of system events such as user registration and order creation.
 - **Authentication**: Implemented JWT-based authentication to secure access to member-specific content.
 - **Payment Integration**: Integrated the LinePay payment gateway to facilitate secure and seamless payment transactions.
