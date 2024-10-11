@@ -3,24 +3,14 @@
 Mei-Ecommerce
 
 ## Technologies
-NestJS, PostgreSQL, Redis: Used for caching and session management.
-- TypeORM
-- NodeMailer
-- Bull: Background job queue for handling asynchronous tasks.
-- Line Pay
-- Jest: End-to-end testing.
-- Seed
-- Swagger: API documentation.
-- Docker: Containerization for development and deployment.
-
+NestJS, PostgreSQL, Redis, TypeORM, Bull, NodeMailer, Line Pay API, Jest, Seed, Swagger, Docker
 
 ## Project Description
-This project is a scalable backend server for an e-commerce platform, developed using NestJS. It features a member system, ordering system, product management, and integrates JWT authentication, email notifications, and search query for products and members.
+This project is a scalable backend server for an e-commerce platform, developed using NestJS. It features a member system, ordering system, product management.
 
 ## Features
 
 - **Server Development**: Built a backend server using NestJS, integrating TypeORM for database interactions and PostgreSQL for data storage.
-- x **CRUD Operations & Pagination**: Implemented CRUD operations, pagination, and search functionality to enhance data retrieval and management.
 - **API Design**: Designed RESTful APIs and documented them using Swagger to communication of endpoint functionality.
 - **Data Consistency**: Utilized database transactions to ensure data integrity and consistency across operations.
 - **Logging & Monitoring**: Integrated a logging system for tracking of system activities and error management, facilitating effective monitoring and debugging.
@@ -72,6 +62,4 @@ $ npm run test:cov
 ## Future Features
 ...
 
-## License
 
-Nest is [MIT licensed](LICENSE).
