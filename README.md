@@ -1,11 +1,13 @@
-
 ## Project Title
+
 Mei-Ecommerce
 
 ## Technologies
+
 NestJS, PostgreSQL, Redis, TypeORM, Bull, NodeMailer, Line Pay API, Jest, Seed, Swagger, Docker
 
 ## Project Description
+
 This project is a scalable backend server for an e-commerce platform, developed using NestJS. It features a member system, ordering system, product management.
 
 ## Features
@@ -22,8 +24,6 @@ This project is a scalable backend server for an e-commerce platform, developed 
 - **Schema Management**: Utilized TypeORM migrations for managing database schema changes, ensuring smooth deployment of updates without disrupting the production environment.
 - **Testing & Reliability**: Conducted end-to-end (E2E) testing using Jest to validate the reliability and performance of API endpoints.
 - **Containerization**: Used Docker and Docker Compose for consistent development and deployment across environments.
-
-
 
 ## Installation
 
@@ -43,10 +43,15 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 
-run migration指令
-參考.env.example
+# create .env file (reference to .env.example)
+$ cp .env.example .env
 
-或是用docker跑的指令
+# run database migration
+$ npm run typeorm migration:run
+
+# run with docker(optional)
+$ docker-compose up
+
 ```
 
 ## Test
@@ -60,6 +65,5 @@ $ npm run test:cov
 ```
 
 ## Future Features
+
 ...
-
-
