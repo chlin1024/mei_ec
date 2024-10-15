@@ -25,6 +25,10 @@ This project is a scalable backend server for an e-commerce platform, developed 
 - **Testing & Reliability**: Conducted end-to-end (E2E) testing using Jest to validate the reliability and performance of API endpoints.
 - **Containerization**: Used Docker and Docker Compose for consistent development and deployment across environments.
 
+## System Architecture
+
+![system architecture](./system%20architecture.png)
+
 ## Installation
 
 ```bash
