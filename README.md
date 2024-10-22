@@ -73,4 +73,12 @@ $ npm run test:cov
 
 ## Future Features
 
-...
+### System Segmentation
+
+- Ensure each system has a single responsibility:
+
+### Business Logic
+
+- **Reporting**: Generate various reports for analysis.
+- **Employee Management**: Manage employee information and roles.
+- **Inventory Management**: Track stock levels and manage inventory.
