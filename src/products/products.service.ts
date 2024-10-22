@@ -80,12 +80,20 @@ export class ProductsService {
 
   async getProductPrice(id: number) {
     const query = this.productsRepository.createQueryBuilder('product');
-    const productPrice = await query
+    const product = await query
       .where('product.id = :id', { id })
       .select('product.sale_price')
       .getOne();
-    console.log(productPrice);
-    return productPrice.sale_price;
+    return product.sale_price;
+  }
+
+  async getProductName(id: number) {
+    const query = this.productsRepository.createQueryBuilder('product');
+    const product = await query
+      .where('product.id = :id', { id })
+      .select('product.name')
+      .getOne();
+    return product.name;
   }
 
   async applyProductDiscount(discountRate: number) {

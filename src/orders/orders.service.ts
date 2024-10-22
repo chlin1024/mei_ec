@@ -1,9 +1,13 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -18,6 +22,7 @@ import { FinancialStatus } from './orderStatus.enum';
 import { CheckoutTransaction } from './entities/checkoutTransaction.entity';
 import { OrderTransaction } from './entities/orderTransaction.entity';
 import { RefundTransaction } from './entities/refundTransaction.entity';
+import { LinePayService } from 'src/line-pay/line-pay.service';
 
 @Injectable()
 export class OrdersService {
@@ -30,6 +35,8 @@ export class OrdersService {
     private checkoutTransactionRepository: Repository<CheckoutTransaction>,
     private userService: UsersService,
     private productsService: ProductsService,
+    @Inject(forwardRef(() => LinePayService))
+    private linepayService: LinePayService,
     private dataSource: DataSource,
   ) {}
 
@@ -239,49 +246,39 @@ export class OrdersService {
     ) {
       throw new ConflictException('Order is already paid or refunded');
     }
-    //計算金額
     let amount: number = 0;
     for (const item of order.orderItems) {
       amount += item.selling_price * item.quantity;
     }
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const packages = [];
+    for (const item of order.orderItems) {
+      const productName = await this.productsService.getProductName(
+        item.productId,
+      );
+      const pack = {
+        id: item.id,
+        amount: item.selling_price * item.quantity,
+        products: [
+          {
+            id: item.productId,
+            name: productName,
+            quantity: item.quantity,
+            price: item.selling_price,
+          },
+        ],
+      };
+      packages.push(pack);
+    }
     try {
-      //串接linepay
-
-      //存transaction
-      const createCheckout = {
-        order_id: orderId,
+      const linepayData = {
         amount,
+        orderId,
+        packages,
       };
-      const checkoutDraft = queryRunner.manager.create(
-        CheckoutTransaction,
-        createCheckout,
-      );
-      const newCheckout = await queryRunner.manager.save(
-        CheckoutTransaction,
-        checkoutDraft,
-      );
-      const saveTransaction = {
-        order_id: orderId,
-        checkout_transaction_id: newCheckout.id,
-      };
-      const draft = queryRunner.manager.create(
-        OrderTransaction,
-        saveTransaction,
-      );
-      await queryRunner.manager.save(OrderTransaction, draft);
-      await queryRunner.manager.update(Order, orderId, {
-        financialStatus: FinancialStatus.PAID,
-      });
-      await queryRunner.commitTransaction();
-      return newCheckout;
+      const linepay = await this.linepayService.checkout(linepayData);
+      return linepay;
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(error);
-    } finally {
-      await queryRunner.release();
+      throw new HttpException('error', HttpStatus.BAD_REQUEST);
     }
   }
 

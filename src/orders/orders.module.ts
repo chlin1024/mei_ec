@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { OrderItem } from './entities/orderItem.entity';
@@ -13,6 +13,9 @@ import { OrderCreatedListener } from './order.listener';
 import { ProductsModule } from 'src/products/products.module';
 import { CheckoutTransaction } from './entities/checkoutTransaction.entity';
 import { RefundTransaction } from './entities/refundTransaction.entity';
+import { LinePayModule } from 'src/line-pay/line-pay.module';
+//import { LinePayService } from 'src/line-pay/line-pay.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -23,10 +26,12 @@ import { RefundTransaction } from './entities/refundTransaction.entity';
       RefundTransaction,
     ]),
     BullModule.registerQueue({ name: 'orderConfirmation' }),
+    HttpModule,
     UsersModule,
     MailerModule,
     AuthModule,
     ProductsModule,
+    forwardRef(() => LinePayModule),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrderConfirmation, OrderCreatedListener],

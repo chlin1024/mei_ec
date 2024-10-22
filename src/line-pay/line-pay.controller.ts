@@ -1,19 +1,37 @@
-import { Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  // Param,
+  // ParseIntPipe,
+  //Post,
+  Query,
+} from '@nestjs/common';
 import { LinePayService } from './line-pay.service';
 
 @Controller('line-pay')
 export class LinePayController {
   constructor(private readonly linePayService: LinePayService) {}
 
-  @Post('checkout')
-  async checkout() {
-    const response = await this.linePayService.checkout();
-    return response;
+  // @Post('checkout')
+  // async checkout() {
+  //   console.log('結帳');
+  //   const response = await this.linePayService.checkout();
+  //   return response;
+  // }
+
+  @Get('confirm')
+  async confirm(
+    @Query('transactionId') transactionId: string,
+    @Query('orderId') orderId: number,
+  ) {
+    return await this.linePayService.confirm(transactionId, orderId);
   }
 
-  @Get('/transaction/:id')
-  async getTransaction(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.linePayService.getTransaction(id);
-    return response;
+  @Get('refund')
+  async refund(
+    @Query('transactionId') transactionId: string,
+    //@Query('orderId') orderId: number,
+  ) {
+    return await this.linePayService.refund(transactionId);
   }
 }

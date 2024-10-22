@@ -1,13 +1,29 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  forwardRef,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 import * as dotenv from 'dotenv';
 import { firstValueFrom } from 'rxjs';
+import { CheckoutTransaction } from 'src/orders/entities/checkoutTransaction.entity';
+import { Order } from 'src/orders/entities/order.entity';
+import { OrderTransaction } from 'src/orders/entities/orderTransaction.entity';
+import { FinancialStatus } from 'src/orders/orderStatus.enum';
+import { OrdersService } from 'src/orders/orders.service';
+import { DataSource } from 'typeorm';
 dotenv.config();
 
 @Injectable()
 export class LinePayService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    @Inject(forwardRef(() => OrdersService))
+    private orderService: OrdersService,
+    private dataSource: DataSource,
+  ) {}
 
   private signKey(clientKey: string, msg: string): string {
     const encoder = new TextEncoder();
@@ -39,7 +55,6 @@ export class LinePayService {
     const nonce = crypto.randomUUID();
     let signature = '';
 
-    // 根據不同方式(method)生成MAC
     if (method === 'GET') {
       signature = this.signKey(
         channelSecret,
@@ -66,107 +81,98 @@ export class LinePayService {
       },
       data: data ? JSON.stringify(data) : null,
     };
-    console.log(reqData);
-
     const response = await firstValueFrom(this.httpService.request(reqData));
-    //檢查return code
-    const processedResponse = this.handleBigInteger(response.data);
-    console.log(response);
-    return processedResponse;
+    return this.handleBigInteger(response.data);
   }
 
-  async checkout() {
+  async checkout(linepayData) {
     try {
       const data = {
         method: 'POST',
         apiPath: '/v3/payments/request',
         data: {
-          amount: 100,
+          amount: linepayData.amount,
           currency: 'TWD',
-          orderId: 'MKSI_S_20180904_1000001',
-          packages: [
-            {
-              id: '1',
-              amount: 100,
-              products: [
-                {
-                  id: 'PEN-B-001',
-                  name: 'Pen Brown',
-                  imageUrl:
-                    'https://pay-store.example.com/images/pen_brown.jpg',
-                  quantity: 2,
-                  price: 50,
-                },
-              ],
-            },
-          ],
+          orderId: linepayData.orderId,
+          packages: linepayData.packages,
           redirectUrls: {
-            confirmUrlType: 'NONE',
-            //confirmUrl: 'https://pay-store.example.com/order/payment/authorize',
+            confirmUrl: `${process.env.NGROK_HTTPS}/line-pay/confirm`,
             //cancelUrl: 'https://pay-store.example.com/order/payment/cancel',
           },
         },
       };
-      const response = await this.requestOnlineAPI(data);
-      console.log('Response: ', response);
-      console.log('闊', response.info.transactionId);
-      await this.startPolling(response.info.transactionId);
-      return response;
+      return await this.requestOnlineAPI(data);
     } catch (error) {
       console.log(error);
     }
   }
-  private intervalId = null;
-  async getPayRequestStatus(requestTransactionId) {
+
+  async confirm(transactionId: string, orderId: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
     try {
-      console.log(requestTransactionId);
-      if (!requestTransactionId) throw new Error('Transaction ID is required!');
-      const response = await this.requestOnlineAPI({
-        method: 'GET',
-        apiPath: `/v3/payments/requests/${requestTransactionId}/check`,
-      });
-      switch (response.returnCode) {
-        case '0000':
-          console.log('In progress');
-          break;
-        case '0110':
-          console.log('Finished');
-          break;
-        case '0121':
-          console.log('Cancelled');
-          break;
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-        //...
-
-        default:
-          clearInterval(this.intervalId);
+      const order = await this.orderService.getOrderById(orderId);
+      let amount: number = 0;
+      for (const item of order.orderItems) {
+        amount += item.selling_price * item.quantity;
       }
+
+      await this.requestOnlineAPI({
+        method: 'POST',
+        apiPath: `/v3/payments/${transactionId}/confirm`,
+        data: {
+          amount,
+          currency: 'TWD',
+        },
+      });
+      const createCheckout = {
+        order_id: orderId,
+        amount,
+      };
+      const checkoutDraft = queryRunner.manager.create(
+        CheckoutTransaction,
+        createCheckout,
+      );
+      const newCheckout = await queryRunner.manager.save(
+        CheckoutTransaction,
+        checkoutDraft,
+      );
+
+      const saveTransaction = {
+        order_id: orderId,
+        checkout_transaction_id: newCheckout.id,
+      };
+      const draft = queryRunner.manager.create(
+        OrderTransaction,
+        saveTransaction,
+      );
+      await queryRunner.manager.save(OrderTransaction, draft);
+
+      await queryRunner.manager.update(Order, orderId, {
+        financialStatus: FinancialStatus.PAID,
+      });
+      await queryRunner.commitTransaction();
+      return newCheckout;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async refund(transactionId: string) {
+    try {
+      const refundResponse = await this.requestOnlineAPI({
+        method: 'POST',
+        apiPath: `/v3/payments/${transactionId}/refund`,
+      });
+
+      console.log('Refund response: ', refundResponse);
     } catch (error) {
       console.log(error);
     }
-  }
-  async startPolling(requestTransactionId: string) {
-    console.log('蒯', requestTransactionId);
-    if (this.intervalId) {
-      clearInterval(this.intervalId); // Clear any existing interval
-    }
-    this.intervalId = setInterval(
-      () => this.getPayRequestStatus(requestTransactionId),
-      1000,
-    );
-  }
-
-  async getTransaction(id) {
-    const data = {
-      method: 'GET',
-      apiPath: `/v3/payments/requests/${id}/check`,
-      // data: {
-      //   amount: 100,
-      //   currency: 'TWD',
-      // },
-    };
-    const response = await this.requestOnlineAPI(data);
-    console.log('Response: ', response);
-    return response;
   }
 }
