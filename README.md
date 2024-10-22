@@ -56,6 +56,9 @@ $ npm run typeorm migration:run
 # run with docker(optional)
 $ docker-compose up
 
+# Download and Install Ngrok (optional for Line Pay)
+ngrok.com/download
+$ ngrok http 3000
 ```
 
 ## Test
