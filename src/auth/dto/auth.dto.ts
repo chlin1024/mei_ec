@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsString,
@@ -11,6 +12,7 @@ export class AuthDto {
   @IsString()
   @MinLength(8)
   @MaxLength(20)
+  @ApiProperty()
   username: string;
 
   @IsNotEmpty()
@@ -20,5 +22,6 @@ export class AuthDto {
     message:
       'Password include at least one lowercase letter, one uppercase letter,one digit.',
   })
+  @ApiProperty()
   password: string;
 }

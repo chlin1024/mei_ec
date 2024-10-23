@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -32,11 +34,17 @@ export class UsersService {
     const userDraft = await this.usersRepository.create(createUserData);
     try {
       const newUser = await this.usersRepository.insert(userDraft);
-      return newUser;
+      const userInfo = {
+        userId: newUser.raw[0].id,
+        name: name,
+        address: email,
+      };
+
+      return userInfo;
     } catch (error) {
       if (error.code === '23505') {
         //username has to be uniqe
-        throw new ConflictException(error.detail);
+        throw new ConflictException('Username already exists.');
       } else {
         throw new InternalServerErrorException(error.detail);
       }
@@ -52,8 +60,11 @@ export class UsersService {
     if (email) {
       query.andWhere('user.email LIKE :email', { email: `%${email}%` });
     }
+
     if (orderBy) {
+      console.log(orderBy);
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+      console.log(cleanOrderBy);
       const orderColumn = cleanOrderBy.split(':')[0];
       const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
         | 'ASC'
@@ -88,8 +99,8 @@ export class UsersService {
       .getOne();
 
     if (!user) {
-      throw new NotFoundException(`User ${username} Not Found`);
-    }
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    } // 設401 避免駭客測試
     return user; //omit(user, ['password']); sign in 需要
   }
 
