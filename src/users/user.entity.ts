@@ -1,4 +1,4 @@
-import { LoginSession } from 'src/auth/loginSession.entity';
+import { LoginSession } from '../auth/loginSession.entity';
 import {
   Column,
   DeleteDateColumn,
@@ -7,18 +7,19 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
+import { UserRoles } from './userRole.enum';
 
 @Entity()
-@Unique(['userName'])
+@Unique(['username'])
 export class User {
   // extends BaseEntity
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  userName: string;
+  username: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @Column()
@@ -26,6 +27,13 @@ export class User {
 
   @Column()
   email: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRoles,
+    default: UserRoles.GUEST,
+  })
+  role: string;
 
   @DeleteDateColumn()
   deletedAt: Date;
