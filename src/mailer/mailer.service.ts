@@ -17,14 +17,8 @@ export class MailerService {
       port: 465,
       secure: true,
       auth: {
-        user: 'mei.ec.verify@gmail.com',
-        pass: process.env.EMAIL_PASS,
-        // type: 'OAuth2',
-        // user: '你用來申請的gmail',
-        // clientId: '申請的OAuth client_Id',
-        // clientSecret: '申請的OAuth client_Id',
-        // refreshToken: '你換到的refresh token',
-        // accessToken: '你換到的 access token',
+        user: process.env.GMAIL,
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
     });
     return transporter;
