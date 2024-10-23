@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product } from './product.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductDto } from './dto/product.dto';
 import { QueryProductDto } from './dto/queryProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class ProductsService {
@@ -21,7 +22,6 @@ export class ProductsService {
   async getProducts(queryProductDto: QueryProductDto) {
     const { page, limit, name, price, description, inStock, orderBy } =
       queryProductDto;
-    //console.log(name, price, description, inStock);
     const query = this.productsRepository.createQueryBuilder('product');
     query.andWhere('product.deletedAt IS NULL');
     if (price) {
@@ -39,23 +39,22 @@ export class ProductsService {
         description: `%${description}%`,
       });
     }
-    let order: Record<string, 'ASC' | 'DESC'> = { id: 'DESC' };
+
     if (orderBy) {
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
       const orderColumn = cleanOrderBy.split(':')[0];
       const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
         | 'ASC'
         | 'DESC';
-      order = {
-        [orderColumn]: orderType,
-      };
+
+      query.orderBy(orderColumn, orderType);
     }
 
-    const products = await query
-      .orderBy(order)
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
+    if (page && limit) {
+      query.skip((page - 1) * limit).take(limit);
+    }
+
+    const products = await query.getMany();
     return products;
   }
 
@@ -67,10 +66,62 @@ export class ProductsService {
 
   async deleteProductById(id: number) {
     const query = this.productsRepository.createQueryBuilder('product');
+    const productExist = await query.where('product.id = :id', { id }).getOne();
+    if (!productExist) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
     const result = await query
       .softDelete()
       .where('product.id = :id', { id })
       .execute();
     return result;
+  }
+
+  async getProductPrice(id: number) {
+    const query = this.productsRepository.createQueryBuilder('product');
+    const product = await query
+      .where('product.id = :id', { id })
+      .select('product.sale_price')
+      .getOne();
+    return product.sale_price;
+  }
+
+  async getProductName(id: number) {
+    const query = this.productsRepository.createQueryBuilder('product');
+    const product = await query
+      .where('product.id = :id', { id })
+      .select('product.name')
+      .getOne();
+    return product.name;
+  }
+
+  async applyProductDiscount(discountRate: number) {
+    const products = await this.getProducts({});
+    for (const product of products) {
+      const discountPrice = product.price * discountRate;
+      await this.updateProduct(product.id, {
+        sale_price: discountPrice,
+      });
+    }
+  }
+
+  async restoreProductPrice() {
+    const products = await this.getProducts({});
+    for (const product of products) {
+      await this.updateProduct(product.id, {
+        sale_price: product.price,
+      });
+    }
+  }
+
+  @Cron('0 31 * * * *')
+  handleDiscount() {
+    this.applyProductDiscount(0.9);
+  }
+
+  @Cron('0 30 * * * *')
+  handleCron() {
+    this.restoreProductPrice();
   }
 }

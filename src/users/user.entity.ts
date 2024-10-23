@@ -1,4 +1,4 @@
-import { LoginSession } from 'src/auth/loginSession.entity';
+import { LoginSession } from '../auth/loginSession.entity';
 import {
   Column,
   DeleteDateColumn,
@@ -10,16 +10,16 @@ import {
 import { UserRoles } from './userRole.enum';
 
 @Entity()
-@Unique(['userName'])
+@Unique(['username'])
 export class User {
   // extends BaseEntity
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  userName: string;
+  username: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @Column()

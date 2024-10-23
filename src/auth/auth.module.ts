@@ -1,17 +1,15 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
-//import { jwtConstants } from './constants';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoginSession } from './loginSession.entity';
-//import { ConfigModule, ConfigService } from '@nestjs/config';
-import { jwtConstants } from './constants';
+import { jwtConstants } from './jwt.constants';
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
@@ -22,5 +20,6 @@ import { jwtConstants } from './constants';
   ],
   controllers: [AuthController],
   providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}

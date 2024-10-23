@@ -1,27 +1,54 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeormConfig } from './config/typeorm.config';
+import typeormConfig from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
-// import { APP_GUARD } from '@nestjs/core';
-// import { RolesGuard } from './roles.guard';
 import { GuestModule } from './guest/guest.module';
+import { LoggingMiddleware } from './utils/middleware/logging.middleware';
+import { MailerModule } from './mailer/mailer.module';
+import { BullModule } from '@nestjs/bull';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { LinePayModule } from './line-pay/line-pay.module';
+import * as dotenv from 'dotenv';
+import { ScheduleModule } from '@nestjs/schedule';
+dotenv.config();
 
+const port = parseInt(process.env.REDIS_PORT) || 6379;
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeormConfig),
+    ConfigModule.forRoot({ isGlobal: true }),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST,
+        port: port,
+      },
+    }),
+    CacheModule.register({
+      max: 100,
+      ttl: 60 * 1000 * 30,
+      isGlobal: true,
+      store: redisStore,
+      host: process.env.REDIS_HOST,
+      port: port,
+    }),
+    EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
     ProductsModule,
     OrdersModule,
-    ConfigModule.forRoot({ isGlobal: true }),
     GuestModule,
+    MailerModule,
+    LinePayModule,
   ],
   controllers: [AppController],
   providers: [
@@ -33,10 +60,8 @@ import { GuestModule } from './guest/guest.module';
   ],
 })
 export class AppModule {
-  constructor(
-    private dataSource: DataSource,
-    //private readonly configService: ConfigService,
-  ) {
-    //console.log('JWT_SECRET:', this.configService.get<string>('JWT_SECRET'));
+  constructor(private dataSource: DataSource) {}
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggingMiddleware).forRoutes('*');
   }
 }

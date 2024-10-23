@@ -1,9 +1,10 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { AuthDto } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -11,8 +12,10 @@ import * as lodash from 'lodash';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginSession } from './loginSession.entity';
 import { IsNull, Repository, UpdateResult } from 'typeorm';
-import { User } from 'src/users/user.entity';
+import { User } from '../users/user.entity';
 import { ConfigService } from '@nestjs/config';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +25,7 @@ export class AuthService {
     @InjectRepository(LoginSession)
     private loginSessionRepository: Repository<LoginSession>,
     private readonly configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   getJwtSecret(): string {
@@ -35,20 +39,21 @@ export class AuthService {
       throw new UnauthorizedException(`wrong username or password`);
     }
     const jwtToken = await this.createSession(user);
+
     return { user: lodash.omit(user, ['password']), token: jwtToken };
   }
 
   async createSession(user: User) {
     const payload = {
       id: user.id,
-      username: user.userName,
+      username: user.username,
       role: user.role,
     };
     const jwtToken = await this.jwtService.signAsync(payload);
     const session = new LoginSession();
     session.token = jwtToken;
     session.userId = user.id;
-    session.createdAt = new Date(Date.now());
+    session.createdAt = new Date(Date.now()); //改為created at date column
     session.expiredAt = new Date(Date.now() + 3600 * 10 * 1000);
     await this.loginSessionRepository.save(session);
     return session.token;
@@ -70,7 +75,6 @@ export class AuthService {
   async revokeSession(token: string): Promise<UpdateResult> {
     try {
       const session = await this.getSessionByToken(token);
-
       const result = await this.loginSessionRepository.softDelete(session.id);
       return result;
     } catch (error) {
