@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProductDto } from './dto/product.dto';
 import { QueryProductDto } from './dto/queryProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class ProductsService {
@@ -75,5 +76,52 @@ export class ProductsService {
       .where('product.id = :id', { id })
       .execute();
     return result;
+  }
+
+  async getProductPrice(id: number) {
+    const query = this.productsRepository.createQueryBuilder('product');
+    const product = await query
+      .where('product.id = :id', { id })
+      .select('product.sale_price')
+      .getOne();
+    return product.sale_price;
+  }
+
+  async getProductName(id: number) {
+    const query = this.productsRepository.createQueryBuilder('product');
+    const product = await query
+      .where('product.id = :id', { id })
+      .select('product.name')
+      .getOne();
+    return product.name;
+  }
+
+  async applyProductDiscount(discountRate: number) {
+    const products = await this.getProducts({});
+    for (const product of products) {
+      const discountPrice = product.price * discountRate;
+      await this.updateProduct(product.id, {
+        sale_price: discountPrice,
+      });
+    }
+  }
+
+  async restoreProductPrice() {
+    const products = await this.getProducts({});
+    for (const product of products) {
+      await this.updateProduct(product.id, {
+        sale_price: product.price,
+      });
+    }
+  }
+
+  @Cron('0 31 * * * *')
+  handleDiscount() {
+    this.applyProductDiscount(0.9);
+  }
+
+  @Cron('0 30 * * * *')
+  handleCron() {
+    this.restoreProductPrice();
   }
 }
