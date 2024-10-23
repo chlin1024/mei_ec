@@ -1,4 +1,4 @@
-import { User } from 'src/users/user.entity';
+import { User } from '../users/user.entity';
 import {
   Column,
   DeleteDateColumn,
@@ -28,5 +28,5 @@ export class LoginSession {
   revokedAt: Date;
 
   @ManyToOne(() => User, (user) => user.loginSessions)
-  user: LoginSession;
+  user: User;
 }

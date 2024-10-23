@@ -1,30 +1,33 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+## Project Title
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Mei-Ecommerce
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Technologies
 
-## Description
+NestJS, PostgreSQL, Redis, TypeORM, Bull, NodeMailer, Line Pay API, Jest, Seed, Swagger, Docker
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Project Description
+
+This project is a scalable backend server for an e-commerce platform, developed using NestJS. It features a member system, ordering system, product management.
+
+## Features
+
+- **Server Development**: Built a backend server using NestJS, integrating TypeORM for database interactions and PostgreSQL for data storage.
+- **API Design**: Designed RESTful APIs and documented them using Swagger to communication of endpoint functionality.
+- **Data Consistency**: Utilized database transactions to ensure data integrity and consistency across operations.
+- **Logging & Monitoring**: Integrated a logging system for tracking of system activities and error management, facilitating effective monitoring and debugging.
+- **Authentication**: Implemented JWT-based authentication to secure access to member-specific content.
+- **Payment Integration**: Integrated the LinePay payment gateway to facilitate secure and seamless payment transactions.
+- **Caching Strategies**: Employed Redis for caching strategies to store login sessions, ensuring quick access and scalability.
+- **Event-Driven Architecture**: Employed EventEmitter to establish an event-driven architecture, streamlining modular handling of system events such as user registration and order
+- **Background Job Management**: Leveraged Bull for managing background jobs and task queues, enabling asynchronous email sending.
+- **Schema Management**: Utilized TypeORM migrations for managing database schema changes, ensuring smooth deployment of updates without disrupting the production environment.
+- **Testing & Reliability**: Conducted end-to-end (E2E) testing using Jest to validate the reliability and performance of API endpoints.
+- **Containerization**: Used Docker and Docker Compose for consistent development and deployment across environments.
+
+## System Architecture
+
+![system architecture](./system%20architecture.png)
 
 ## Installation
 
@@ -43,14 +46,24 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
+# create .env file (reference to .env.example)
+$ cp .env.example .env
+
+# run database migration
+$ npm run typeorm migration:run
+
+# run with docker(optional)
+$ docker-compose up
+
+# Download and Install Ngrok (optional for Line Pay)
+ngrok.com/download
+$ ngrok http 3000
 ```
 
 ## Test
 
 ```bash
-# unit tests
-$ npm run test
-
 # e2e tests
 $ npm run test:e2e
 
@@ -58,16 +71,14 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Support
+## Future Features
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### System Segmentation
 
-## Stay in touch
+- Ensure each system has a single responsibility:
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Business Logic
 
-## License
-
-Nest is [MIT licensed](LICENSE).
+- **Reporting**: Generate various reports for analysis.
+- **Employee Management**: Manage employee information and roles.
+- **Inventory Management**: Track stock levels and manage inventory.

@@ -1,17 +1,18 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
-//import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
-import { omit } from 'lodash';
+import { QueryUsersDto } from './dto/queryUsers.dto';
 
 @Injectable()
 export class UsersService {
@@ -19,31 +20,62 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
-  // constructor(
-  //   @InjectRepository(UserRepository)
-  //   private userRepository: UserRepository,
-  // ) {}
+
   async createUser(createUserDto: CreateUserDto) {
-    const { userName, password, name, email } = createUserDto;
+    const { username, password, name, email } = createUserDto;
     const salt = await bcrypt.genSalt();
     const hashPassword = await bcrypt.hash(password, salt);
-    const user = new User();
-    user.userName = userName;
-    user.password = hashPassword;
-    user.name = name;
-    user.email = email;
+    const createUserData = {
+      username,
+      password: hashPassword,
+      name,
+      email,
+    };
+    const userDraft = await this.usersRepository.create(createUserData);
     try {
-      await this.usersRepository.save(user);
-      return { userName, name, email };
+      const newUser = await this.usersRepository.insert(userDraft);
+      const userInfo = {
+        userId: newUser.raw[0].id,
+        name: name,
+        address: email,
+      };
+
+      return userInfo;
     } catch (error) {
       if (error.code === '23505') {
-        throw new ConflictException(error.detail);
+        //username has to be uniqe
+        throw new ConflictException('Username already exists.');
       } else {
         throw new InternalServerErrorException(error.detail);
       }
     }
+  }
 
-    //return this.userRepository.createUser(createUserDto);
+  async getUsers(queryUsersDto: QueryUsersDto) {
+    const { page, limit, orderBy, email, name } = queryUsersDto;
+    const query = this.usersRepository.createQueryBuilder('user');
+    if (name) {
+      query.andWhere('user.name LIKE :name', { name: `%${name}%` });
+    }
+    if (email) {
+      query.andWhere('user.email LIKE :email', { email: `%${email}%` });
+    }
+
+    if (orderBy) {
+      console.log(orderBy);
+      const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+      console.log(cleanOrderBy);
+      const orderColumn = cleanOrderBy.split(':')[0];
+      const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
+        | 'ASC'
+        | 'DESC';
+      query.orderBy(orderColumn, orderType);
+    }
+    if (page && limit) {
+      query.skip((page - 1) * limit).take(limit);
+    }
+    const users = await query.getMany();
+    return users;
   }
 
   async getUserById(id: number): Promise<User> {
@@ -53,17 +85,23 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User ${id} Not Found`);
     }
-    return omit(user, ['password']);
+    return user;
   }
 
-  async getUserByUserName(userName: string): Promise<User> {
-    const result = await this.usersRepository.findOne({
-      where: { userName, deletedAt: null },
-    });
-    if (!result) {
-      throw new NotFoundException(`User ${userName} Not Found`);
-    }
-    return result;
+  async getUserByUserName(username: string): Promise<User> {
+    // const user = await this.usersRepository.findOne({
+    //   where: { username, deletedAt: null }, });
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.username = :username', { username })
+      .andWhere('user.deletedAt IS NULL')
+      .getOne();
+
+    if (!user) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    } // 設401 避免駭客測試
+    return user; //omit(user, ['password']); sign in 需要
   }
 
   async deleteUserById(id: number) {
