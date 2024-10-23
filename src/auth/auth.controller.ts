@@ -1,42 +1,38 @@
 import {
   Body,
   Controller,
+  Patch,
   Post,
-  Put,
-  UsePipes,
-  ValidationPipe,
+  Req,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
-//import { CreateUserDto } from 'src/users/dto/createUser.dto';
-import { UsersService } from 'src/users/users.service';
-import { JwtValidationPipe } from './pipe/jwtValidation.pipe';
+import { JwtGuard } from './guard/jwtAuthentication.guard';
+import { Request } from 'express';
+import { loginSessionCacheInterceptor } from 'src/utils/interceptor/login-session.interceptor';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
 
+@ApiTags('auth')
+@ApiErrorResponses()
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private userService: UsersService,
-  ) {}
-
-  // @Post('signup')
-  // signUp(@Body() createUserDto: CreateUserDto) {
-  //   return this.userService.createUser(createUserDto);
-  // }
+  constructor(private authService: AuthService) {}
 
   @Post('login')
-  @UsePipes(ValidationPipe)
+  @UseInterceptors(loginSessionCacheInterceptor)
   signIn(@Body() authDto: AuthDto) {
     return this.authService.signIn(authDto);
   }
-  // @Get('token')
-  // login(@Body('token') token: string) {
-  //   return this.authService.getSessionByToken(token);
-  // }
 
-  @Put('token')
-  @UsePipes(JwtValidationPipe)
-  logout(@Body('token') token: string) {
-    return this.authService.revokeSession(token);
+  @Patch('logout')
+  @ApiBearerAuth()
+  //@ApiCreatedResponse({ description: 'Success.' })
+  @UseGuards(JwtGuard)
+  logout(@Req() req: Request) {
+    const jwtToken = req.headers.authorization.split(' ')[1];
+    return this.authService.revokeSession(jwtToken);
   }
 }
