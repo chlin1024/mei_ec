@@ -10,6 +10,9 @@ export class ProductDto {
   @Type(() => Number)
   price: number;
 
+  @IsNumber()
+  sale_price?: number;
+
   description?: string;
 
   @IsNumber()

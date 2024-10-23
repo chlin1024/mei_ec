@@ -21,3 +21,5 @@ export async function seedDatabase() {
     console.log(error);
   }
 }
+
+//seedDatabase();

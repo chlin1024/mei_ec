@@ -11,8 +11,12 @@ import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { JwtGuard } from './guard/jwtAuthentication.guard';
 import { Request } from 'express';
-import { loginSessionCacheInterceptor } from 'src/interceptor/login-session.interceptor';
+import { loginSessionCacheInterceptor } from 'src/utils/interceptor/login-session.interceptor';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiErrorResponses } from 'src/utils/decorator/api-response.decorator.';
 
+@ApiTags('auth')
+@ApiErrorResponses()
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -24,6 +28,8 @@ export class AuthController {
   }
 
   @Patch('logout')
+  @ApiBearerAuth()
+  //@ApiCreatedResponse({ description: 'Success.' })
   @UseGuards(JwtGuard)
   logout(@Req() req: Request) {
     const jwtToken = req.headers.authorization.split(' ')[1];

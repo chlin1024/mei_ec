@@ -26,14 +26,12 @@ export class JwtGuard implements CanActivate {
         throw new UnauthorizedException();
       }
       request.user = this.jwtService.verify(jwtToken);
-      const session = await this.cacheManager.get(request.user.username);
+      const session = await this.cacheManager.get(jwtToken);
       if (!session) {
         await this.authService.getSessionByToken(jwtToken);
       }
-      //note: 檢查jwt token與session user是否相同？
       return true;
     } catch (error) {
-      console.log(error);
       throw new UnauthorizedException();
     }
   }

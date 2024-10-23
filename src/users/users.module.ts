@@ -7,6 +7,7 @@ import { BullModule } from '@nestjs/bull';
 import { UserVerify } from './user.process';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { UserRegisteredListener } from './user.listener';
 //import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
@@ -17,7 +18,7 @@ import { AuthModule } from 'src/auth/auth.module';
     forwardRef(() => AuthModule),
   ],
   controllers: [UsersController],
-  providers: [UsersService, UserVerify],
+  providers: [UsersService, UserVerify, UserRegisteredListener],
   exports: [UsersService],
 })
 export class UsersModule {}
