@@ -4,8 +4,11 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
@@ -22,19 +25,20 @@ export class UsersController {
     return this.usersService.getUserById(id);
   }
 
-  @Post()
-  createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
+  @Post('signup')
+  @UsePipes(ValidationPipe)
+  createUser(@Body() createUserDto: CreateUserDto): object {
     return this.usersService.createUser(createUserDto);
   }
 
   @Delete(':id')
-  deleteUserById(@Param('id') id: number): Promise<UpdateResult> {
+  deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UpdateResult> {
     return this.usersService.deleteUserById(id);
   }
 
   @Put(':id')
   updateUser(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UpdateResult> {
     return this.usersService.updateUser(id, updateUserDto);
