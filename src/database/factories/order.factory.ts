@@ -1,5 +1,5 @@
 import { Faker } from '@faker-js/faker';
-import { Order } from '../../orders/order.entity';
+import { Order } from '../../orders/entities/order.entity';
 import { setSeederFactory } from 'typeorm-extension';
 import {
   FinancialStatus,
@@ -13,6 +13,6 @@ export const OrderFactory = setSeederFactory(Order, async (faker: Faker) => {
   order.address = faker.location.streetAddress();
   order.financialStatus = faker.helpers.enumValue(FinancialStatus);
   order.fulfillmentStatus = faker.helpers.enumValue(FulfillmentStatus);
-  order.note = faker.lorem.lines();
+  order.note = faker.lorem.lines(2);
   return order;
 });

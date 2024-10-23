@@ -13,16 +13,12 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import * as bcrypt from 'bcrypt';
 import { QueryUsersDto } from './dto/queryUsers.dto';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectQueue('userVerify')
-    private userVerify: Queue,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -38,15 +34,13 @@ export class UsersService {
     const userDraft = await this.usersRepository.create(createUserData);
     try {
       const newUser = await this.usersRepository.insert(userDraft);
-      await this.userVerify.add(
-        'sendUserVerify',
-        {
-          name: name,
-          address: email,
-        },
-        { attempts: 3 },
-      );
-      return newUser;
+      const userInfo = {
+        userId: newUser.raw[0].id,
+        name: name,
+        address: email,
+      };
+
+      return userInfo;
     } catch (error) {
       if (error.code === '23505') {
         //username has to be uniqe
@@ -66,8 +60,11 @@ export class UsersService {
     if (email) {
       query.andWhere('user.email LIKE :email', { email: `%${email}%` });
     }
+
     if (orderBy) {
+      console.log(orderBy);
       const cleanOrderBy = orderBy.replace(/^'|'$/g, '');
+      console.log(cleanOrderBy);
       const orderColumn = cleanOrderBy.split(':')[0];
       const orderType = cleanOrderBy.split(':')[1].toUpperCase() as
         | 'ASC'
